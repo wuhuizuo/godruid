@@ -203,7 +203,7 @@ type QueryTopN struct {
 	Granularity      Granlarity             `json:"granularity"`
 	Dimension        DimSpec                `json:"dimension"`
 	Threshold        int                    `json:"threshold"`
-	Metric           *TopNMetric            `json:"metric"`
+	Metric           interface{}            `json:"metric"`  // *TopNMetric
 	Filter           *Filter                `json:"filter,omitempty"`
 	Aggregations     []Aggregation          `json:"aggregations"`
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
