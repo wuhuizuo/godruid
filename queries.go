@@ -26,7 +26,7 @@ type QueryGroupBy struct {
 	Filter           *Filter                `json:"filter,omitempty"`
 	Aggregations     []Aggregation          `json:"aggregations"`
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
-	Intervals        []string               `json:"intervals"`
+	Intervals        Intervals              `json:"intervals"`
 	Context          map[string]interface{} `json:"context,omitempty"`
 
 	QueryResult []GroupbyItem `json:"-"`
@@ -58,7 +58,7 @@ type QuerySearch struct {
 	DataSource       string                 `json:"dataSource"`
 	Granularity      Granlarity             `json:"granularity"`
 	Filter           *Filter                `json:"filter,omitempty"`
-	Intervals        []string               `json:"intervals"`
+	Intervals        Intervals              `json:"intervals"`
 	SearchDimensions []string               `json:"searchDimensions,omitempty"`
 	Query            *SearchQuery           `json:"query"`
 	Sort             *SearchSort            `json:"sort"`
@@ -95,7 +95,7 @@ func (q *QuerySearch) onResponse(content []byte) error {
 type QuerySegmentMetadata struct {
 	QueryType  string                 `json:"queryType"`
 	DataSource string                 `json:"dataSource"`
-	Intervals  []string               `json:"intervals"`
+	Intervals  Intervals              `json:"intervals"`
 	ToInclude  *ToInclude             `json:"toInclude,omitempty"`
 	Merge      interface{}            `json:"merge,omitempty"`
 	Context    map[string]interface{} `json:"context,omitempty"`
@@ -105,7 +105,7 @@ type QuerySegmentMetadata struct {
 
 type SegmentMetaData struct {
 	Id        string                `json:"id"`
-	Intervals []string              `json:"intervals"`
+	Intervals Intervals             `json:"intervals"`
 	Columns   map[string]ColumnItem `json:"columns"`
 }
 
@@ -171,7 +171,7 @@ type QueryTimeseries struct {
 	Filter           *Filter                `json:"filter,omitempty"`
 	Aggregations     []Aggregation          `json:"aggregations"`
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
-	Intervals        []string               `json:"intervals"`
+	Intervals        Intervals              `json:"intervals"`
 	Context          map[string]interface{} `json:"context,omitempty"`
 
 	QueryResult []Timeseries `json:"-"`
@@ -207,7 +207,7 @@ type QueryTopN struct {
 	Filter           *Filter                `json:"filter,omitempty"`
 	Aggregations     []Aggregation          `json:"aggregations"`
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
-	Intervals        []string               `json:"intervals"`
+	Intervals        Intervals              `json:"intervals"`
 	Context          map[string]interface{} `json:"context,omitempty"`
 
 	QueryResult []TopNItem `json:"-"`
@@ -236,7 +236,7 @@ func (q *QueryTopN) onResponse(content []byte) error {
 type QuerySelect struct {
 	QueryType   string                 `json:"queryType"`
 	DataSource  string                 `json:"dataSource"`
-	Intervals   []string               `json:"intervals"`
+	Intervals   Intervals              `json:"intervals"`
 	Filter      *Filter                `json:"filter,omitempty"`
 	Dimensions  []DimSpec              `json:"dimensions"`
 	Metrics     []string               `json:"metrics"`
@@ -252,19 +252,19 @@ type QuerySelect struct {
 // the interesting results are in events blob which we
 // call as 'SelectEvent'.
 type SelectBlob struct {
-        Timestamp string       `json:"timestamp"`
-        Result    SelectResult `json:"result"`
+	Timestamp string       `json:"timestamp"`
+	Result    SelectResult `json:"result"`
 }
 
 type SelectResult struct {
-        PagingIdentifiers map[string]interface{} `json:"pagingIdentifiers"`
-        Events            []SelectEvent          `json:"events"`
+	PagingIdentifiers map[string]interface{} `json:"pagingIdentifiers"`
+	Events            []SelectEvent          `json:"events"`
 }
 
 type SelectEvent struct {
-        SegmentId string                 `json:"segmentId"`
-        Offset    int64                  `json:"offset"`
-        Event     map[string]interface{} `json:"event"`
+	SegmentId string                 `json:"segmentId"`
+	Offset    int64                  `json:"offset"`
+	Event     map[string]interface{} `json:"event"`
 }
 
 func (q *QuerySelect) setup() { q.QueryType = "select" }
