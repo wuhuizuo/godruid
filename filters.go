@@ -8,8 +8,8 @@ type Filter struct {
 	Function    string      `json:"function,omitempty"`
 	Field       *Filter     `json:"field,omitempty"`
 	Fields      []*Filter   `json:"fields,omitempty"`
-	Upper       string      `json:"upper,omitempty"`
-	Lower       string      `json:"lower,omitempty"`
+	Upper       float32     `json:"upper,omitempty"`
+	Lower       float32     `json:"lower,omitempty"`
 	Ordering    string      `json:"ordering,omitempty"`
 	UpperStrict bool        `json:"upperStrict,omitempty"`
 	LowerStrict bool        `json:"lowerStrict,omitempty"`
@@ -23,7 +23,7 @@ func FilterSelector(dimension string, value interface{}) *Filter {
 	}
 }
 
-func FilterUpperBound(dimension string, ordering string, bound string, strict bool) *Filter {
+func FilterUpperBound(dimension string, ordering string, bound float32, strict bool) *Filter {
 	return &Filter{
 		Type:        "bound",
 		Dimension:   dimension,
@@ -33,7 +33,7 @@ func FilterUpperBound(dimension string, ordering string, bound string, strict bo
 	}
 }
 
-func FilterLowerBound(dimension string, ordering string, bound string, strict bool) *Filter {
+func FilterLowerBound(dimension string, ordering string, bound float32, strict bool) *Filter {
 	return &Filter{
 		Type:        "bound",
 		Dimension:   dimension,
@@ -43,7 +43,7 @@ func FilterLowerBound(dimension string, ordering string, bound string, strict bo
 	}
 }
 
-func FilterLowerUpperBound(dimension string, ordering string, lowerBound string, lowerStrict bool, upperBound string, upperStrict bool) *Filter {
+func FilterLowerUpperBound(dimension string, ordering string, lowerBound float32, lowerStrict bool, upperBound float32, upperStrict bool) *Filter {
 	return &Filter{
 		Type:        "bound",
 		Dimension:   dimension,

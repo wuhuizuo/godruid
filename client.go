@@ -14,8 +14,6 @@ const (
 	DefaultEndPoint = "/druid/v2"
 )
 
-var bearerId = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjhkYmYwYjVkNjcwMTYxOTIyMDIxNDkyOTg3ZGZiOTNjM2FkYWYzMTcifQ.eyJhenAiOiI2Mjc2MzQ4Nzc3NjEtanNndDU2YjA4ODc1YWhkZG43MmRtaXBmcnA4NDhvdTQuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI2Mjc2MzQ4Nzc3NjEtZnVpdWhtbDI5Y2U3OTg1dWE1cmNqbTJzM2Fkazc5N3YuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTQyOTMwODk5Mjc0MDUzNjM0NDUiLCJoZCI6ImFjY2VkaWFuLmNvbSIsImVtYWlsIjoicHR6b2xvdkBhY2NlZGlhbi5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXRfaGFzaCI6Ik0xc2ZITkJvNEtxbEZiaUsxQ0luZlEiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJpYXQiOjE1MTE1NTc3OTIsImV4cCI6MTUxMTU2MTM5Mn0.nl-AkjPCuzy96E8otxHZstekGo8lEV93ZTfKSOcsPyZG6FpokENgL68ta9pp2hYzgglzXO10zs6Z-sAXsi4aaHsW7xnZmq3rmMN7EKhU9PDPu5G3209_F5bVOOcXE-OoRK9k_el8-R4WVBez9itOYPYt8qglB8g99aSBoONUsI_j1Tvq9_EQmOdIJcCcMl4PVM1uoYqsdpyAiFBYUsbrNVqnRUtOdYopqMrrzNlZH5asWcyavWgi8ue4rkyqVF5teIp3AcBsKcR7JTvUI8oX_YX0pFdOAWnYuhoEwOS2sMfJmhOWIPQDupG_0a44gGIwO5_81wqGerWn_B2kPZWGNw"
-
 type Client struct {
 	Url      string
 	EndPoint string
@@ -26,7 +24,7 @@ type Client struct {
 	LastResponse string
 }
 
-func (c *Client) Query(query Query) (err error) {
+func (c *Client) Query(query Query, authToken string) (err error) {
 	query.setup()
 	var reqJson []byte
 	if c.Debug {
@@ -37,7 +35,10 @@ func (c *Client) Query(query Query) (err error) {
 	if err != nil {
 		return
 	}
-	result, err := c.QueryRaw(reqJson)
+
+	fmt.Println("QUERY--->", string(reqJson))
+
+	result, err := c.QueryRaw(reqJson, authToken)
 	if err != nil {
 		return
 	}
@@ -45,7 +46,7 @@ func (c *Client) Query(query Query) (err error) {
 	return query.onResponse(result)
 }
 
-func (c *Client) QueryRaw(req []byte) (result []byte, err error) {
+func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err error) {
 	if c.EndPoint == "" {
 		c.EndPoint = DefaultEndPoint
 	}
@@ -79,7 +80,7 @@ func (c *Client) QueryRaw(req []byte) (result []byte, err error) {
 		return nil, err
 	}
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Authorization", "Bearer "+bearerId)
+	request.Header.Set("Authorization", "Bearer "+authToken)
 
 	resp, err := httpClient.Do(request)
 
