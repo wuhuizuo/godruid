@@ -35,9 +35,6 @@ func (c *Client) Query(query Query, authToken string) (err error) {
 	if err != nil {
 		return
 	}
-
-	fmt.Println("QUERY--->", string(reqJson))
-
 	result, err := c.QueryRaw(reqJson, authToken)
 	if err != nil {
 		return
