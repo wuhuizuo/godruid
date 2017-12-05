@@ -72,7 +72,7 @@ func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err erro
 		Transport: tr,
 	}
 
-	request, err := http.NewRequest("POST", "https://broker.proto.npav.accedian.net/druid/v2?pretty=", bytes.NewBuffer(req))
+	request, err := http.NewRequest("POST", c.Url+endPoint, bytes.NewBuffer(req))
 	if err != nil {
 		return nil, err
 	}
