@@ -16,6 +16,8 @@ type Aggregation struct {
 	Filter      *Filter      `json:"filter,omitempty"`
 	Resolution  int32        `json:"resolution,omitempty"`
 	NumBuckets  int32        `json:"numBuckets,omitempty"`
+	LowerLimit  string       `json:"lowerLimit,omitempty"`
+	UpperLimit  string       `json:"upperLimit,omitempty"`
 	Aggregator  *Aggregation `json:"aggregator,omitempty"`
 }
 
@@ -88,13 +90,15 @@ func AggFiltered(filter *Filter, aggregator *Aggregation) Aggregation {
 	}
 }
 
-func AggHistoFold(name string, fieldName string, resolution int32, numBuckets int32) Aggregation {
+func AggHistoFold(name string, fieldName string, resolution int32, numBuckets int32, lowerLimit string, upperLimit string) Aggregation {
 	return Aggregation{
 		Type:       "approxHistogramFold",
 		Name:       name,
 		Resolution: resolution,
 		NumBuckets: numBuckets,
 		FieldName:  fieldName,
+		LowerLimit: lowerLimit,
+		UpperLimit: upperLimit,
 	}
 }
 
