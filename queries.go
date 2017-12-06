@@ -13,12 +13,24 @@ type Query interface {
 	GetRawJSON() []byte
 }
 
+type QueryType string
+
+const (
+	TIMESERIES      QueryType = "timeseries"
+	TOPN            QueryType = "topN"
+	SEARCH          QueryType = "search"
+	GROUPBY         QueryType = "groupBy"
+	SEGMENTMETADATA QueryType = "segmentMetadata"
+	TIMEBOUNDARY    QueryType = "timeBoundary"
+	SELECT          QueryType = "select"
+)
+
 // ---------------------------------
 // GroupBy Query
 // ---------------------------------
 
 type QueryGroupBy struct {
-	QueryType        string                 `json:"queryType"`
+	QueryType        QueryType              `json:"queryType"`
 	DataSource       string                 `json:"dataSource"`
 	Dimensions       []DimSpec              `json:"dimensions"`
 	Granularity      Granlarity             `json:"granularity"`
@@ -40,7 +52,7 @@ type GroupbyItem struct {
 	Event     map[string]interface{} `json:"event"`
 }
 
-func (q *QueryGroupBy) setup()             { q.QueryType = "groupBy" }
+func (q *QueryGroupBy) setup()             { q.QueryType = GROUPBY }
 func (q *QueryGroupBy) GetRawJSON() []byte { return q.RawJSON }
 func (q *QueryGroupBy) onResponse(content []byte) error {
 	res := new([]GroupbyItem)
@@ -58,7 +70,7 @@ func (q *QueryGroupBy) onResponse(content []byte) error {
 // ---------------------------------
 
 type QuerySearch struct {
-	QueryType        string                 `json:"queryType"`
+	QueryType        QueryType              `json:"queryType"`
 	DataSource       string                 `json:"dataSource"`
 	Granularity      Granlarity             `json:"granularity"`
 	Filter           *Filter                `json:"filter,omitempty"`
@@ -82,7 +94,7 @@ type DimValue struct {
 	Value     string `json:"value"`
 }
 
-func (q *QuerySearch) setup()             { q.QueryType = "search" }
+func (q *QuerySearch) setup()             { q.QueryType = SEARCH }
 func (q *QuerySearch) GetRawJSON() []byte { return q.RawJSON }
 func (q *QuerySearch) onResponse(content []byte) error {
 	res := new([]SearchItem)
@@ -100,7 +112,7 @@ func (q *QuerySearch) onResponse(content []byte) error {
 // ---------------------------------
 
 type QuerySegmentMetadata struct {
-	QueryType  string                 `json:"queryType"`
+	QueryType  QueryType              `json:"queryType"`
 	DataSource string                 `json:"dataSource"`
 	Intervals  Intervals              `json:"intervals"`
 	ToInclude  *ToInclude             `json:"toInclude,omitempty"`
@@ -141,7 +153,7 @@ func (q *QuerySegmentMetadata) onResponse(content []byte) error {
 // ---------------------------------
 
 type QueryTimeBoundary struct {
-	QueryType  string                 `json:"queryType"`
+	QueryType  QueryType              `json:"queryType"`
 	DataSource string                 `json:"dataSource"`
 	Bound      string                 `json:"bound,omitempty"`
 	Context    map[string]interface{} `json:"context,omitempty"`
@@ -160,7 +172,7 @@ type TimeBoundary struct {
 	MaxTime string `json:"minTime"`
 }
 
-func (q *QueryTimeBoundary) setup()             { q.QueryType = "timeBoundary" }
+func (q *QueryTimeBoundary) setup()             { q.QueryType = TIMEBOUNDARY }
 func (q *QueryTimeBoundary) GetRawJSON() []byte { return q.RawJSON }
 func (q *QueryTimeBoundary) onResponse(content []byte) error {
 	res := new([]TimeBoundaryItem)
@@ -178,7 +190,7 @@ func (q *QueryTimeBoundary) onResponse(content []byte) error {
 // ---------------------------------
 
 type QueryTimeseries struct {
-	QueryType        string                 `json:"queryType"`
+	QueryType        QueryType              `json:"queryType"`
 	DataSource       string                 `json:"dataSource"`
 	Granularity      Granlarity             `json:"granularity"`
 	Filter           *Filter                `json:"filter,omitempty"`
@@ -196,7 +208,7 @@ type Timeseries struct {
 	Result    map[string]interface{} `json:"result"`
 }
 
-func (q *QueryTimeseries) setup()             { q.QueryType = "timeseries" }
+func (q *QueryTimeseries) setup()             { q.QueryType = TIMESERIES }
 func (q *QueryTimeseries) GetRawJSON() []byte { return q.RawJSON }
 func (q *QueryTimeseries) onResponse(content []byte) error {
 	res := new([]Timeseries)
@@ -214,7 +226,7 @@ func (q *QueryTimeseries) onResponse(content []byte) error {
 // ---------------------------------
 
 type QueryTopN struct {
-	QueryType        string                 `json:"queryType"`
+	QueryType        QueryType              `json:"queryType"`
 	DataSource       string                 `json:"dataSource"`
 	Granularity      Granlarity             `json:"granularity"`
 	Dimension        DimSpec                `json:"dimension"`
@@ -235,7 +247,7 @@ type TopNItem struct {
 	Result    []map[string]interface{} `json:"result"`
 }
 
-func (q *QueryTopN) setup()             { q.QueryType = "topN" }
+func (q *QueryTopN) setup()             { q.QueryType = TOPN }
 func (q *QueryTopN) GetRawJSON() []byte { return q.RawJSON }
 func (q *QueryTopN) onResponse(content []byte) error {
 	res := new([]TopNItem)
@@ -253,7 +265,7 @@ func (q *QueryTopN) onResponse(content []byte) error {
 // ---------------------------------
 
 type QuerySelect struct {
-	QueryType   string                 `json:"queryType"`
+	QueryType   QueryType              `json:"queryType"`
 	DataSource  string                 `json:"dataSource"`
 	Intervals   Intervals              `json:"intervals"`
 	Filter      *Filter                `json:"filter,omitempty"`
@@ -287,7 +299,7 @@ type SelectEvent struct {
 	Event     map[string]interface{} `json:"event"`
 }
 
-func (q *QuerySelect) setup()             { q.QueryType = "select" }
+func (q *QuerySelect) setup()             { q.QueryType = SELECT }
 func (q *QuerySelect) GetRawJSON() []byte { return q.RawJSON }
 func (q *QuerySelect) onResponse(content []byte) error {
 	res := new([]SelectBlob)

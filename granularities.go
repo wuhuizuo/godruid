@@ -14,17 +14,35 @@ const (
 	GranDay        SimpleGran = "day"
 )
 
-type GranDuration struct {
+type granDuration struct {
 	Type string `json:"type"`
 
 	Duration string `json:"duration"`
 	Origin   string `json:"origin,omitempty"`
 }
 
-type GranPeriod struct {
+type granPeriod struct {
 	Type string `json:"type"`
 
 	Period   string `json:"period"`
 	TimeZone string `json:"timeZone,omitempty"`
 	Origin   string `json:"origin,omitempty"`
+}
+
+func GranPeriod(period string, timeZone string, origin string) granPeriod {
+	return granPeriod{
+		Type:     "period",
+		Period:   period,
+		TimeZone: "UTC",
+		Origin:   origin,
+	}
+}
+
+func GranDuration(duration string, origin string) granDuration {
+	return granDuration{
+		Type:     "duration",
+		Duration: duration,
+		Origin:   origin,
+	}
+
 }
