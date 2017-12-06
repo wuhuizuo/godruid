@@ -1,13 +1,18 @@
 package godruid
 
 type Filter struct {
-	Type      string      `json:"type"`
-	Dimension string      `json:"dimension,omitempty"`
-	Value     interface{} `json:"value,omitempty"`
-	Pattern   string      `json:"pattern,omitempty"`
-	Function  string      `json:"function,omitempty"`
-	Field     *Filter     `json:"field,omitempty"`
-	Fields    []*Filter   `json:"fields,omitempty"`
+	Type        string      `json:"type"`
+	Dimension   string      `json:"dimension,omitempty"`
+	Value       interface{} `json:"value,omitempty"`
+	Pattern     string      `json:"pattern,omitempty"`
+	Function    string      `json:"function,omitempty"`
+	Field       *Filter     `json:"field,omitempty"`
+	Fields      []*Filter   `json:"fields,omitempty"`
+	Upper       float32     `json:"upper,omitempty"`
+	Lower       float32     `json:"lower,omitempty"`
+	Ordering    string      `json:"ordering,omitempty"`
+	UpperStrict bool        `json:"upperStrict,omitempty"`
+	LowerStrict bool        `json:"lowerStrict,omitempty"`
 }
 
 func FilterSelector(dimension string, value interface{}) *Filter {
@@ -15,6 +20,38 @@ func FilterSelector(dimension string, value interface{}) *Filter {
 		Type:      "selector",
 		Dimension: dimension,
 		Value:     value,
+	}
+}
+
+func FilterUpperBound(dimension string, ordering string, bound float32, strict bool) *Filter {
+	return &Filter{
+		Type:        "bound",
+		Dimension:   dimension,
+		Ordering:    ordering,
+		Upper:       bound,
+		UpperStrict: strict,
+	}
+}
+
+func FilterLowerBound(dimension string, ordering string, bound float32, strict bool) *Filter {
+	return &Filter{
+		Type:        "bound",
+		Dimension:   dimension,
+		Ordering:    ordering,
+		Lower:       bound,
+		LowerStrict: strict,
+	}
+}
+
+func FilterLowerUpperBound(dimension string, ordering string, lowerBound float32, lowerStrict bool, upperBound float32, upperStrict bool) *Filter {
+	return &Filter{
+		Type:        "bound",
+		Dimension:   dimension,
+		Ordering:    ordering,
+		Lower:       lowerBound,
+		LowerStrict: lowerStrict,
+		Upper:       upperBound,
+		UpperStrict: upperStrict,
 	}
 }
 

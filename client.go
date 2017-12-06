@@ -2,6 +2,7 @@ package godruid
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -23,7 +24,7 @@ type Client struct {
 	LastResponse string
 }
 
-func (c *Client) Query(query Query) (err error) {
+func (c *Client) Query(query Query, authToken string) (err error) {
 	query.setup()
 	var reqJson []byte
 	if c.Debug {
@@ -34,7 +35,7 @@ func (c *Client) Query(query Query) (err error) {
 	if err != nil {
 		return
 	}
-	result, err := c.QueryRaw(reqJson)
+	result, err := c.QueryRaw(reqJson, authToken)
 	if err != nil {
 		return
 	}
@@ -42,7 +43,7 @@ func (c *Client) Query(query Query) (err error) {
 	return query.onResponse(result)
 }
 
-func (c *Client) QueryRaw(req []byte) (result []byte, err error) {
+func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err error) {
 	if c.EndPoint == "" {
 		c.EndPoint = DefaultEndPoint
 	}
@@ -62,11 +63,24 @@ func (c *Client) QueryRaw(req []byte) (result []byte, err error) {
 		clientTimeout = c.Timeout
 	}
 
-	httpClient := &http.Client{
-		Timeout: clientTimeout,
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
-	resp, err := httpClient.Post(c.Url+endPoint, "application/json", bytes.NewBuffer(req))
+	httpClient := &http.Client{
+		Timeout:   clientTimeout,
+		Transport: tr,
+	}
+
+	request, err := http.NewRequest("POST", c.Url+endPoint, bytes.NewBuffer(req))
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Authorization", "Bearer "+authToken)
+
+	resp, err := httpClient.Do(request)
+
 	if err != nil {
 		return
 	}

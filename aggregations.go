@@ -5,14 +5,20 @@ import (
 )
 
 type Aggregation struct {
-	Type        string   `json:"type"`
-	Name        string   `json:"name,omitempty"`
-	FieldName   string   `json:"fieldName,omitempty"`
-	FieldNames  []string `json:"fieldNames,omitempty"`
-	FnAggregate string   `json:"fnAggregate,omitempty"`
-	FnCombine   string   `json:"fnCombine,omitempty"`
-	FnReset     string   `json:"fnReset,omitempty"`
-	ByRow       bool     `json:"byRow,omitempty"`
+	Type        string       `json:"type"`
+	Name        string       `json:"name,omitempty"`
+	FieldName   string       `json:"fieldName,omitempty"`
+	FieldNames  []string     `json:"fieldNames,omitempty"`
+	FnAggregate string       `json:"fnAggregate,omitempty"`
+	FnCombine   string       `json:"fnCombine,omitempty"`
+	FnReset     string       `json:"fnReset,omitempty"`
+	ByRow       bool         `json:"byRow,omitempty"`
+	Filter      *Filter      `json:"filter,omitempty"`
+	Resolution  int32        `json:"resolution,omitempty"`
+	NumBuckets  int32        `json:"numBuckets,omitempty"`
+	LowerLimit  string       `json:"lowerLimit,omitempty"`
+	UpperLimit  string       `json:"upperLimit,omitempty"`
+	Aggregator  *Aggregation `json:"aggregator,omitempty"`
 }
 
 func AggRawJson(rawJson string) Aggregation {
@@ -57,6 +63,42 @@ func AggMax(name, fieldName string) Aggregation {
 		Type:      "max",
 		Name:      name,
 		FieldName: fieldName,
+	}
+}
+
+func AggLongMin(name, fieldName string) Aggregation {
+	return Aggregation{
+		Type:      "longMin",
+		Name:      name,
+		FieldName: fieldName,
+	}
+}
+
+func AggLongMax(name, fieldName string) Aggregation {
+	return Aggregation{
+		Type:      "longMax",
+		Name:      name,
+		FieldName: fieldName,
+	}
+}
+
+func AggFiltered(filter *Filter, aggregator *Aggregation) Aggregation {
+	return Aggregation{
+		Type:       "filtered",
+		Filter:     filter,
+		Aggregator: aggregator,
+	}
+}
+
+func AggHistoFold(name string, fieldName string, resolution int32, numBuckets int32, lowerLimit string, upperLimit string) Aggregation {
+	return Aggregation{
+		Type:       "approxHistogramFold",
+		Name:       name,
+		Resolution: resolution,
+		NumBuckets: numBuckets,
+		FieldName:  fieldName,
+		LowerLimit: lowerLimit,
+		UpperLimit: upperLimit,
 	}
 }
 
