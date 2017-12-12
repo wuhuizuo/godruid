@@ -77,7 +77,9 @@ func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err erro
 		return nil, err
 	}
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Authorization", "Bearer "+authToken)
+	if authToken != "" {
+		request.Header.Set("Authorization", "Bearer "+authToken)
+	}
 
 	resp, err := httpClient.Do(request)
 
