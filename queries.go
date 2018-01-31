@@ -307,7 +307,11 @@ func (q *QuerySelect) onResponse(content []byte) error {
 	if err != nil {
 		return err
 	}
-	q.QueryResult = (*res)[0]
+	if len(*res) == 0 {
+		q.QueryResult = SelectBlob{}
+	} else {
+		q.QueryResult = (*res)[0]
+	}
 	q.RawJSON = content
 	return nil
 }
