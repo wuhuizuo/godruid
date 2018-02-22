@@ -2,12 +2,10 @@ package godruid
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 const (
@@ -17,11 +15,11 @@ const (
 type Client struct {
 	Url      string
 	EndPoint string
-	Timeout  time.Duration
 
 	Debug        bool
 	LastRequest  string
 	LastResponse string
+	HttpClient   *http.Client
 }
 
 func (c *Client) Query(query Query, authToken string) (err error) {
@@ -35,6 +33,7 @@ func (c *Client) Query(query Query, authToken string) (err error) {
 	if err != nil {
 		return
 	}
+
 	result, err := c.QueryRaw(reqJson, authToken)
 	if err != nil {
 		return
@@ -56,22 +55,6 @@ func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err erro
 		return
 	}
 
-	// By default, use 60 second timeout unless specified otherwise
-	// by the caller
-	clientTimeout := 60 * time.Second
-	if c.Timeout != 0 {
-		clientTimeout = c.Timeout
-	}
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	httpClient := &http.Client{
-		Timeout:   clientTimeout,
-		Transport: tr,
-	}
-
 	request, err := http.NewRequest("POST", c.Url+endPoint, bytes.NewBuffer(req))
 	if err != nil {
 		return nil, err
@@ -81,7 +64,7 @@ func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err erro
 		request.Header.Set("Authorization", "Bearer "+authToken)
 	}
 
-	resp, err := httpClient.Do(request)
+	resp, err := c.HttpClient.Do(request)
 
 	if err != nil {
 		return
