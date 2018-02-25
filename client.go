@@ -70,7 +70,7 @@ func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err erro
 	}()
 
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	result, err = ioutil.ReadAll(resp.Body)
