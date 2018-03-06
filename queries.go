@@ -23,6 +23,7 @@ const (
 	SEGMENTMETADATA QueryType = "segmentMetadata"
 	TIMEBOUNDARY    QueryType = "timeBoundary"
 	SELECT          QueryType = "select"
+	SCAN            QueryType = "scan"
 )
 
 // ---------------------------------
@@ -312,6 +313,44 @@ func (q *QuerySelect) onResponse(content []byte) error {
 	} else {
 		q.QueryResult = (*res)[0]
 	}
+	q.RawJSON = content
+	return nil
+}
+
+// ---------------------------------
+// Scan Query
+// ---------------------------------
+
+type QueryScan struct {
+	QueryType    QueryType              `json:"queryType"`
+	DataSource   string                 `json:"dataSource"`
+	Limit        int                    `json:"limit,omitempty"`
+	Columns      []string               `json:"columns,omitempty"`
+	ResultFormat string                 `json:"resultFormat,omitempty"`
+	Metric       interface{}            `json:"metric"` // *TopNMetric
+	Filter       *Filter                `json:"filter,omitempty"`
+	Intervals    Intervals              `json:"intervals"`
+	Context      map[string]interface{} `json:"context,omitempty"`
+
+	QueryResult []ScanBlob `json:"-"`
+	RawJSON     []byte
+}
+
+type ScanBlob struct {
+	SegmentID string                   `json:"segmentId"`
+	Columns   []string                 `json:"columns"`
+	Events    []map[string]interface{} `json:"events"`
+}
+
+func (q *QueryScan) setup()             { q.QueryType = SCAN }
+func (q *QueryScan) GetRawJSON() []byte { return q.RawJSON }
+func (q *QueryScan) onResponse(content []byte) error {
+	res := new([]ScanBlob)
+	err := json.Unmarshal(content, res)
+	if err != nil {
+		return err
+	}
+	q.QueryResult = *res
 	q.RawJSON = content
 	return nil
 }
