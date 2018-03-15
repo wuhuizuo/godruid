@@ -3,19 +3,22 @@ package godruid
 type DimSpec interface{}
 
 type Dimension struct {
-	Type            string           `json:"type"`
-	Dimension       string           `json:"dimension"`
-	OutputName      string           `json:"outputName"`
-	DimExtractionFn *DimExtractionFn `json:"dimExtractionFn,omitempty"`
+	Type         string           `json:"type"`
+	Dimension    string           `json:"dimension"`
+	OutputName   string           `json:"outputName"`
+	ExtractionFn *DimExtractionFn `json:"extractionFn,omitempty"`
 }
 
 type DimExtractionFn struct {
-	Type         string       `json:"type"`
-	Expr         string       `json:"expr,omitempty"`
-	Query        *SearchQuery `json:"query,omitempty"`
-	TimeFormat   string       `json:"timeFormat,omitempty"`
-	ResultFormat string       `json:"resultFormat,omitempty"`
-	Function     string       `json:"function,omitempty"`
+	Type        string       `json:"type"`
+	Expr        string       `json:"expr,omitempty"`
+	Query       *SearchQuery `json:"query,omitempty"`
+	Format      string       `json:"format,omitempty"`
+	Function    string       `json:"function,omitempty"`
+	TimeZone    string       `json:"timeZone,omitempty"`
+	Locale      string       `json:"locale,omitempty"`
+	Granularity string       `json:"granularity,omitempty"`
+	AsMillis    bool         `json:"asMillis,omitempty"`
 }
 
 func DimDefault(dimension, outputName string) DimSpec {
@@ -28,10 +31,10 @@ func DimDefault(dimension, outputName string) DimSpec {
 
 func DimExtraction(dimension, outputName string, fn *DimExtractionFn) DimSpec {
 	return &Dimension{
-		Type:            "extraction",
-		Dimension:       dimension,
-		OutputName:      outputName,
-		DimExtractionFn: fn,
+		Type:         "extraction",
+		Dimension:    dimension,
+		OutputName:   outputName,
+		ExtractionFn: fn,
 	}
 }
 
@@ -56,11 +59,14 @@ func DimExFnSearchQuerySpec(query *SearchQuery) *DimExtractionFn {
 	}
 }
 
-func DimExFnTime(timeFormat, resultFormat string) *DimExtractionFn {
+func DimExFnTime(timeFormat, timeZone string, locale string, granularity string, asMillis bool) *DimExtractionFn {
 	return &DimExtractionFn{
-		Type:         "time",
-		TimeFormat:   timeFormat,
-		ResultFormat: resultFormat,
+		Type:        "timeFormat",
+		Format:      timeFormat,
+		TimeZone:    timeZone,
+		Locale:      locale,
+		Granularity: granularity,
+		AsMillis:    asMillis,
 	}
 }
 
