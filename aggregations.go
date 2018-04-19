@@ -19,6 +19,7 @@ type Aggregation struct {
 	LowerLimit  string       `json:"lowerLimit,omitempty"`
 	UpperLimit  string       `json:"upperLimit,omitempty"`
 	Aggregator  *Aggregation `json:"aggregator,omitempty"`
+	Round       bool         `json:"round,omitempty"`
 }
 
 func AggRawJson(rawJson string) Aggregation {
