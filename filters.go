@@ -1,19 +1,19 @@
 package godruid
 
 type Filter struct {
-	Type         string           `json:"type"`
-	Dimension    string           `json:"dimension,omitempty"`
-	Value        interface{}      `json:"value,omitempty"`
-	Pattern      string           `json:"pattern,omitempty"`
-	Function     string           `json:"function,omitempty"`
-	Field        *Filter          `json:"field,omitempty"`
-	Fields       []*Filter        `json:"fields,omitempty"`
-	Upper        float32          `json:"upper,omitempty"`
-	Lower        float32          `json:"lower,omitempty"`
-	Ordering     Ordering         `json:"ordering,omitempty"`
-	UpperStrict  bool             `json:"upperStrict,omitempty"`
-	LowerStrict  bool             `json:"lowerStrict,omitempty"`
-	ExtractionFn *DimExtractionFn `json:"extractionFn,omitempty"`
+	Type         string        `json:"type"`
+	Dimension    string        `json:"dimension,omitempty"`
+	Value        interface{}   `json:"value,omitempty"`
+	Pattern      string        `json:"pattern,omitempty"`
+	Function     string        `json:"function,omitempty"`
+	Field        *Filter       `json:"field,omitempty"`
+	Fields       []*Filter     `json:"fields,omitempty"`
+	Upper        float32       `json:"upper,omitempty"`
+	Lower        float32       `json:"lower,omitempty"`
+	Ordering     Ordering      `json:"ordering,omitempty"`
+	UpperStrict  bool          `json:"upperStrict,omitempty"`
+	LowerStrict  bool          `json:"lowerStrict,omitempty"`
+	ExtractionFn *ExtractionFn `json:"extractionFn,omitempty"`
 }
 
 type Ordering string
