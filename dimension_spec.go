@@ -21,6 +21,13 @@ type DimExtractionFn struct {
 	AsMillis    bool         `json:"asMillis,omitempty"`
 }
 
+type TimeExtractionDimensionSpec struct {
+	Type               string       `json:"type"`
+	Dimension          string       `json:"dimension"`
+	OutputName         string       `json:"outputName"`
+	ExtractionFunction ExtractionFn `json:"extractionFn"`
+}
+
 func DimDefault(dimension, outputName string) DimSpec {
 	return &Dimension{
 		Type:       "default",
