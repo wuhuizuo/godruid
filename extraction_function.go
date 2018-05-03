@@ -4,7 +4,7 @@ type ExtractionFn interface{}
 
 type RegisteredLookupExtractionFn struct {
 	Type   string `json:"type"`
-	Lookup string `json:"lookup`
+	Lookup string `json:"lookup"`
 }
 
 type TimeExtractionFn struct {
