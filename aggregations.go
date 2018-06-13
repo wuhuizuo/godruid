@@ -67,6 +67,22 @@ func AggMax(name, fieldName string) Aggregation {
 	}
 }
 
+func AggDoubleMax(name, fieldName string) Aggregation {
+	return Aggregation{
+		Type:      "doubleMax",
+		Name:      name,
+		FieldName: fieldName,
+	}
+}
+
+func AggDoubleMin(name, fieldName string) Aggregation {
+	return Aggregation{
+		Type:      "doubleMin",
+		Name:      name,
+		FieldName: fieldName,
+	}
+}
+
 func AggLongMin(name, fieldName string) Aggregation {
 	return Aggregation{
 		Type:      "longMin",
