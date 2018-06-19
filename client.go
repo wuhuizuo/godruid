@@ -61,7 +61,11 @@ func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err erro
 	}
 	request.Header.Set("Content-Type", "application/json")
 	if authToken != "" {
-		request.Header.Set("Authorization", "Bearer "+authToken)
+		cookie := &http.Cookie{
+			Name:  "skylight-aaa",
+			Value: authToken,
+		}
+		request.AddCookie(cookie)
 	}
 
 	resp, err := c.HttpClient.Do(request)
