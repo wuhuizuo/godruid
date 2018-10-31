@@ -42,7 +42,7 @@ type QueryGroupBy struct {
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
 	Intervals        Intervals              `json:"intervals"`
 	Context          map[string]interface{} `json:"context,omitempty"`
-	VirtualColumns   []virtualColumn        `json:"virtualColumns,omitempty"`
+	VirtualColumns   []VirtualColumn        `json:"virtualColumns,omitempty"`
 	QueryResult      []GroupbyItem          `json:"-"`
 	RawJSON          []byte
 }
@@ -80,7 +80,7 @@ type QuerySearch struct {
 	Query            *SearchQuery           `json:"query"`
 	Sort             *SearchSort            `json:"sort"`
 	Context          map[string]interface{} `json:"context,omitempty"`
-	VirtualColumns   []virtualColumn        `json:"virtualColumns,omitempty"`
+	VirtualColumns   []VirtualColumn        `json:"virtualColumns,omitempty"`
 	QueryResult      []SearchItem           `json:"-"`
 	RawJSON          []byte
 }
@@ -119,7 +119,7 @@ type QuerySegmentMetadata struct {
 	ToInclude      *ToInclude             `json:"toInclude,omitempty"`
 	Merge          interface{}            `json:"merge,omitempty"`
 	Context        map[string]interface{} `json:"context,omitempty"`
-	VirtualColumns []virtualColumn        `json:"virtualColumns,omitempty"`
+	VirtualColumns []VirtualColumn        `json:"virtualColumns,omitempty"`
 	QueryResult    []SegmentMetaData      `json:"-"`
 	RawJSON        []byte
 }
@@ -199,7 +199,7 @@ type QueryTimeseries struct {
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
 	Intervals        Intervals              `json:"intervals"`
 	Context          map[string]interface{} `json:"context,omitempty"`
-	VirtualColumns   []virtualColumn        `json:"virtualColumns,omitempty"`
+	VirtualColumns   []VirtualColumn        `json:"virtualColumns,omitempty"`
 	QueryResult      []Timeseries           `json:"-"`
 	RawJSON          []byte
 }
@@ -238,7 +238,7 @@ type QueryTopN struct {
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
 	Intervals        Intervals              `json:"intervals"`
 	Context          map[string]interface{} `json:"context,omitempty"`
-	VirtualColumns   []virtualColumn        `json:"virtualColumns,omitempty"`
+	VirtualColumns   []VirtualColumn        `json:"virtualColumns,omitempty"`
 	QueryResult      []TopNItem             `json:"-"`
 	RawJSON          []byte
 }
@@ -275,7 +275,7 @@ type QuerySelect struct {
 	Granularity    Granlarity             `json:"granularity"`
 	PagingSpec     map[string]interface{} `json:"pagingSpec,omitempty"`
 	Context        map[string]interface{} `json:"context,omitempty"`
-	VirtualColumns []virtualColumn        `json:"virtualColumns,omitempty"`
+	VirtualColumns []VirtualColumn        `json:"virtualColumns,omitempty"`
 	QueryResult    SelectBlob             `json:"-"`
 	RawJSON        []byte
 }
@@ -331,7 +331,7 @@ type QueryScan struct {
 	Filter         *Filter                `json:"filter,omitempty"`
 	Intervals      Intervals              `json:"intervals"`
 	Context        map[string]interface{} `json:"context,omitempty"`
-	VirtualColumns []virtualColumn        `json:"virtualColumns,omitempty"`
+	VirtualColumns []VirtualColumn        `json:"virtualColumns,omitempty"`
 	QueryResult    []ScanBlob             `json:"-"`
 	RawJSON        []byte
 }
@@ -355,15 +355,15 @@ func (q *QueryScan) onResponse(content []byte) error {
 	return nil
 }
 
-type virtualColumn struct {
+type VirtualColumn struct {
 	Type       string                  `json:"type"`
 	Name       string                  `json:"name"`
 	Expression string                  `json:"expression"`
 	OutputType VirtualColumnOutputType `json:"outputType"`
 }
 
-func NewVirtualColumn(name string, expression string, outputType VirtualColumnOutputType) virtualColumn {
-	return virtualColumn{
+func NewVirtualColumn(name string, expression string, outputType VirtualColumnOutputType) VirtualColumn {
+	return VirtualColumn{
 		Type:       "expression",
 		Name:       name,
 		Expression: expression,
@@ -374,8 +374,8 @@ func NewVirtualColumn(name string, expression string, outputType VirtualColumnOu
 type VirtualColumnOutputType string
 
 const (
-	Long   VirtualColumnOutputType = "LONG"
-	Float  VirtualColumnOutputType = "FLOAT"
-	Double VirtualColumnOutputType = "DOUBLE"
-	String VirtualColumnOutputType = "String"
+	VirtualColumnLong   VirtualColumnOutputType = "LONG"
+	VirtualColumnFloat  VirtualColumnOutputType = "FLOAT"
+	VirtualColumnDouble VirtualColumnOutputType = "DOUBLE"
+	VirtualColumnString VirtualColumnOutputType = "STRING"
 )
