@@ -22,77 +22,77 @@ type Aggregation struct {
 	Round       bool         `json:"round,omitempty"`
 }
 
-func AggRawJson(rawJson string) Aggregation {
+func AggRawJson(rawJson string) *Aggregation {
 	agg := &Aggregation{}
 	json.Unmarshal([]byte(rawJson), agg)
-	return *agg
+	return agg
 }
 
-func AggCount(name string) Aggregation {
-	return Aggregation{
+func AggCount(name string) *Aggregation {
+	return &Aggregation{
 		Type: "count",
 		Name: name,
 	}
 }
 
-func AggLongSum(name, fieldName string) Aggregation {
-	return Aggregation{
+func AggLongSum(name, fieldName string) *Aggregation {
+	return &Aggregation{
 		Type:      "longSum",
 		Name:      name,
 		FieldName: fieldName,
 	}
 }
 
-func AggDoubleSum(name, fieldName string) Aggregation {
-	return Aggregation{
+func AggDoubleSum(name, fieldName string) *Aggregation {
+	return &Aggregation{
 		Type:      "doubleSum",
 		Name:      name,
 		FieldName: fieldName,
 	}
 }
 
-func AggMin(name, fieldName string) Aggregation {
-	return Aggregation{
+func AggMin(name, fieldName string) *Aggregation {
+	return &Aggregation{
 		Type:      "min",
 		Name:      name,
 		FieldName: fieldName,
 	}
 }
 
-func AggMax(name, fieldName string) Aggregation {
-	return Aggregation{
+func AggMax(name, fieldName string) *Aggregation {
+	return &Aggregation{
 		Type:      "max",
 		Name:      name,
 		FieldName: fieldName,
 	}
 }
 
-func AggDoubleMax(name, fieldName string) Aggregation {
-	return Aggregation{
+func AggDoubleMax(name, fieldName string) *Aggregation {
+	return &Aggregation{
 		Type:      "doubleMax",
 		Name:      name,
 		FieldName: fieldName,
 	}
 }
 
-func AggDoubleMin(name, fieldName string) Aggregation {
-	return Aggregation{
+func AggDoubleMin(name, fieldName string) *Aggregation {
+	return &Aggregation{
 		Type:      "doubleMin",
 		Name:      name,
 		FieldName: fieldName,
 	}
 }
 
-func AggLongMin(name, fieldName string) Aggregation {
-	return Aggregation{
+func AggLongMin(name, fieldName string) *Aggregation {
+	return &Aggregation{
 		Type:      "longMin",
 		Name:      name,
 		FieldName: fieldName,
 	}
 }
 
-func AggLongMax(name, fieldName string) Aggregation {
-	return Aggregation{
+func AggLongMax(name, fieldName string) *Aggregation {
+	return &Aggregation{
 		Type:      "longMax",
 		Name:      name,
 		FieldName: fieldName,

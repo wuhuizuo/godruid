@@ -26,6 +26,14 @@ const (
 	STRLEN        Ordering = "strlen"
 )
 
+// Filter constants
+const (
+	LOWERSTRICT = "lowerStrict"
+	UPPERSTRICT = "upperStrict"
+	LOWERLIMIT  = "lowerLimit"
+	UPPERLIMIT  = "upperLimit"
+)
+
 func FilterSelector(dimension string, value interface{}) *Filter {
 	return &Filter{
 		Type:      "selector",

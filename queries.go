@@ -26,6 +26,13 @@ const (
 	SCAN            QueryType = "scan"
 )
 
+// Context constants
+const (
+	TIMEOUT          = "timeout"
+	SKIPEMPTYBUCKETS = "skipEmptyBuckets"
+	QUERYID          = "queryId"
+)
+
 // ---------------------------------
 // GroupBy Query
 // ---------------------------------
