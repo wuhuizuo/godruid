@@ -10,15 +10,18 @@ type Dimension struct {
 }
 
 type DimExtractionFn struct {
-	Type        string       `json:"type"`
-	Expr        string       `json:"expr,omitempty"`
-	Query       *SearchQuery `json:"query,omitempty"`
-	Format      string       `json:"format,omitempty"`
-	Function    string       `json:"function,omitempty"`
-	TimeZone    string       `json:"timeZone,omitempty"`
-	Locale      string       `json:"locale,omitempty"`
-	Granularity string       `json:"granularity,omitempty"`
-	AsMillis    bool         `json:"asMillis,omitempty"`
+	Type                    string       `json:"type"`
+	Expr                    string       `json:"expr,omitempty"`
+	Index                   int          `json:"index,omitempty"`
+	ReplaceMissingValue     bool         `json:"replaceMissingValue,omitempty"`
+	ReplaceMissingValueWith string       `json:"replaceMissingValueWith,omitempty"`
+	Query                   *SearchQuery `json:"query,omitempty"`
+	Format                  string       `json:"format,omitempty"`
+	Function                string       `json:"function,omitempty"`
+	TimeZone                string       `json:"timeZone,omitempty"`
+	Locale                  string       `json:"locale,omitempty"`
+	Granularity             string       `json:"granularity,omitempty"`
+	AsMillis                bool         `json:"asMillis,omitempty"`
 }
 
 type TimeExtractionDimensionSpec struct {
@@ -45,10 +48,12 @@ func DimExtraction(dimension, outputName string, fn *DimExtractionFn) DimSpec {
 	}
 }
 
-func DimExFnRegex(expr string) *DimExtractionFn {
+func DimExFnRegex(expr string, index int, replaceMissingValue bool, replaceMissingValueWith string) *DimExtractionFn {
 	return &DimExtractionFn{
-		Type: "regex",
-		Expr: expr,
+		Type:                    "regex",
+		Expr:                    expr,
+		ReplaceMissingValue:     replaceMissingValue,
+		ReplaceMissingValueWith: replaceMissingValueWith,
 	}
 }
 
