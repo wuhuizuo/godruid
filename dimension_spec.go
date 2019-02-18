@@ -52,6 +52,7 @@ func DimExFnRegex(expr string, index int, replaceMissingValue bool, replaceMissi
 	return &DimExtractionFn{
 		Type:                    "regex",
 		Expr:                    expr,
+		Index:                   index,
 		ReplaceMissingValue:     replaceMissingValue,
 		ReplaceMissingValueWith: replaceMissingValueWith,
 	}
