@@ -331,7 +331,8 @@ func (q *QuerySelect) onResponse(content []byte) error {
 type QueryScan struct {
 	QueryType      QueryType              `json:"queryType"`
 	DataSource     string                 `json:"dataSource"`
-	Limit          int                    `json:"limit,omitempty"`
+	Limit          int64                  `json:"limit,omitempty"`
+	BatchSize      int64                  `json:"batchSize,omitempty"`
 	Columns        []string               `json:"columns,omitempty"`
 	ResultFormat   string                 `json:"resultFormat,omitempty"`
 	Metric         interface{}            `json:"metric"` // *TopNMetric

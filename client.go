@@ -13,9 +13,9 @@ const (
 )
 
 type Client struct {
-	Url      string
-	EndPoint string
-
+	Url          string
+	EndPoint     string
+	DataSource   string
 	Debug        bool
 	LastRequest  string
 	LastResponse string
