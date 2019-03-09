@@ -338,6 +338,7 @@ type QueryScan struct {
 	Metric         interface{}            `json:"metric"` // *TopNMetric
 	Filter         *Filter                `json:"filter,omitempty"`
 	Intervals      Intervals              `json:"intervals"`
+	Legacy         bool                   `json:"legacy,omitempty"`
 	Context        map[string]interface{} `json:"context,omitempty"`
 	VirtualColumns []VirtualColumn        `json:"virtualColumns,omitempty"`
 	QueryResult    []ScanBlob             `json:"-"`
