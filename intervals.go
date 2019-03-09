@@ -1,3 +1,3 @@
 package godruid
 
-type Intervals interface{}
+type Intervals []string
