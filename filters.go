@@ -113,27 +113,38 @@ func FilterNot(filter *Filter) *Filter {
 	}
 }
 
-func joinFilters(filters []*Filter, connector string) *Filter {
-	// Remove null filters.
-	p := 0
+func flattenFilters(filters []*Filter, connector string) []*Filter {
+	fields := []*Filter{}
+
+	// Remove null filters and flatten same type filter with connector.
 	for _, f := range filters {
 		if f != nil {
-			filters[p] = f
-			p++
+			if f.Type == connector {
+				for _, f := range flattenFilters(f.Fields, connector) {
+					fields = append(fields, f)
+				}
+			} else {
+				fields = append(fields, f)
+			}
 		}
 	}
-	filters = filters[0:p]
 
-	fLen := len(filters)
+	return fields
+}
+
+func joinFilters(filters []*Filter, connector string) *Filter {
+	fields := flattenFilters(filters, connector)
+
+	fLen := len(fields)
 	if fLen == 0 {
 		return nil
 	}
 	if fLen == 1 {
-		return filters[0]
+		return fields[0]
 	}
 
 	return &Filter{
 		Type:   connector,
-		Fields: filters,
+		Fields: fields,
 	}
 }
