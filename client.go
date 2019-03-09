@@ -15,9 +15,6 @@ const (
 	DefaultEndPoint = "/druid/v2"
 )
 
-// MemCache 内存存储
-type MemCache cache.Cache
-
 type Client struct {
 	Url          string
 	EndPoint     string
@@ -26,7 +23,7 @@ type Client struct {
 	LastRequest  string
 	LastResponse string
 	HttpClient   *http.Client
-	ResultCache  *MemCache
+	ResultCache  *cache.Cache
 }
 
 // dataKey create a md5sum key for a given data
