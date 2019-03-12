@@ -2,6 +2,8 @@ package godruid
 
 import (
 	"encoding/json"
+	"strings"
+	"time"
 )
 
 // Check http://druid.io/docs/0.6.154/Querying.html#query-operators for detail description.
@@ -11,6 +13,7 @@ type Query interface {
 	setup()
 	onResponse(content []byte) error
 	GetRawJSON() []byte
+	shouldCache() bool
 }
 
 type QueryType string
@@ -60,7 +63,35 @@ type GroupbyItem struct {
 	Event     map[string]interface{} `json:"event"`
 }
 
+func intervalShouldCache(intervals []string) bool {
+	if len(intervals) < 1 {
+		return false
+	}
+
+	ret := true
+	nowTimeNano := time.Now().UnixNano()
+	for _, interval := range intervals {
+		timeRange := strings.SplitN(interval, "/", 2)
+		if len(timeRange) != 2 {
+			ret = false
+			break
+		}
+		endTime, err := time.Parse(time.RFC3339, timeRange[1])
+		if err != nil {
+			ret = false
+			break
+		}
+		if nowTimeNano < endTime.UnixNano() {
+			ret = false
+			break
+		}
+	}
+
+	return ret
+}
+
 func (q *QueryGroupBy) setup()             { q.QueryType = GROUPBY }
+func (q *QueryGroupBy) shouldCache() bool  { return intervalShouldCache(q.Intervals) }
 func (q *QueryGroupBy) GetRawJSON() []byte { return q.RawJSON }
 func (q *QueryGroupBy) onResponse(content []byte) error {
 	res := new([]GroupbyItem)
@@ -103,6 +134,7 @@ type DimValue struct {
 }
 
 func (q *QuerySearch) setup()             { q.QueryType = SEARCH }
+func (q *QuerySearch) shouldCache() bool  { return intervalShouldCache(q.Intervals) }
 func (q *QuerySearch) GetRawJSON() []byte { return q.RawJSON }
 func (q *QuerySearch) onResponse(content []byte) error {
 	res := new([]SearchItem)
@@ -144,6 +176,7 @@ type ColumnItem struct {
 }
 
 func (q *QuerySegmentMetadata) setup()             { q.QueryType = "segmentMetadata" }
+func (q *QuerySegmentMetadata) shouldCache() bool  { return intervalShouldCache(q.Intervals) }
 func (q *QuerySegmentMetadata) GetRawJSON() []byte { return q.RawJSON }
 func (q *QuerySegmentMetadata) onResponse(content []byte) error {
 	res := new([]SegmentMetaData)
@@ -181,6 +214,7 @@ type TimeBoundary struct {
 }
 
 func (q *QueryTimeBoundary) setup()             { q.QueryType = TIMEBOUNDARY }
+func (q *QueryTimeBoundary) shouldCache() bool  { return false }
 func (q *QueryTimeBoundary) GetRawJSON() []byte { return q.RawJSON }
 func (q *QueryTimeBoundary) onResponse(content []byte) error {
 	res := new([]TimeBoundaryItem)
@@ -217,6 +251,7 @@ type Timeseries struct {
 }
 
 func (q *QueryTimeseries) setup()             { q.QueryType = TIMESERIES }
+func (q *QueryTimeseries) shouldCache() bool  { return intervalShouldCache(q.Intervals) }
 func (q *QueryTimeseries) GetRawJSON() []byte { return q.RawJSON }
 func (q *QueryTimeseries) onResponse(content []byte) error {
 	res := new([]Timeseries)
@@ -256,6 +291,7 @@ type TopNItem struct {
 }
 
 func (q *QueryTopN) setup()             { q.QueryType = TOPN }
+func (q *QueryTopN) shouldCache() bool  { return intervalShouldCache(q.Intervals) }
 func (q *QueryTopN) GetRawJSON() []byte { return q.RawJSON }
 func (q *QueryTopN) onResponse(content []byte) error {
 	res := new([]TopNItem)
@@ -308,6 +344,7 @@ type SelectEvent struct {
 }
 
 func (q *QuerySelect) setup()             { q.QueryType = SELECT }
+func (q *QuerySelect) shouldCache() bool  { return intervalShouldCache(q.Intervals) }
 func (q *QuerySelect) GetRawJSON() []byte { return q.RawJSON }
 func (q *QuerySelect) onResponse(content []byte) error {
 	res := new([]SelectBlob)
@@ -352,6 +389,7 @@ type ScanBlob struct {
 }
 
 func (q *QueryScan) setup()             { q.QueryType = SCAN }
+func (q *QueryScan) shouldCache() bool  { return intervalShouldCache(q.Intervals) }
 func (q *QueryScan) GetRawJSON() []byte { return q.RawJSON }
 func (q *QueryScan) onResponse(content []byte) error {
 	res := new([]ScanBlob)

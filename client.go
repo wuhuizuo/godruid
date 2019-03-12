@@ -2,10 +2,13 @@ package godruid
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	cache "github.com/patrickmn/go-cache"
 )
 
 const (
@@ -20,6 +23,15 @@ type Client struct {
 	LastRequest  string
 	LastResponse string
 	HttpClient   *http.Client
+	ResultCache  *cache.Cache
+}
+
+// dataKey create a md5sum key for a given data
+func dataKey(data []byte) string {
+	var tmpData interface{}
+	json.Unmarshal(data, &tmpData)
+	sortedBytes, _ := json.Marshal(tmpData)
+	return fmt.Sprintf("%x", md5.Sum(sortedBytes))
 }
 
 func (c *Client) Query(query Query, authToken string) (err error) {
@@ -34,9 +46,25 @@ func (c *Client) Query(query Query, authToken string) (err error) {
 		return
 	}
 
-	result, err := c.QueryRaw(reqJson, authToken)
-	if err != nil {
-		return
+	var result []byte
+	needCache := (c.ResultCache != nil && query.shouldCache())
+	if needCache {
+		qKey := dataKey(reqJson)
+		cachedVal, ok := c.ResultCache.Get(qKey)
+		if ok {
+			result = cachedVal.([]byte)
+		} else {
+			result, err = c.QueryRaw(reqJson, authToken)
+			if err != nil {
+				return
+			}
+			c.ResultCache.Set(qKey, result, 0)
+		}
+	} else {
+		result, err = c.QueryRaw(reqJson, authToken)
+		if err != nil {
+			return
+		}
 	}
 
 	return query.onResponse(result)
