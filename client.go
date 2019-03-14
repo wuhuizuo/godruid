@@ -61,8 +61,9 @@ func (c *Client) Query(query Query, authToken string) (err error) {
 	needCache := (c.ResultCache != nil && query.shouldCache())
 	if needCache {
 		qKey := dataKey(reqJson)
-		result, ok := c.ResultCache.Get(qKey)
-		if !ok {
+		var cached bool
+		result, cached = c.ResultCache.Get(qKey)
+		if !cached {
 			result, err = c.QueryRaw(reqJson, authToken)
 			if err != nil {
 				return
