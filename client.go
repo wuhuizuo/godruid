@@ -7,13 +7,24 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	cache "github.com/patrickmn/go-cache"
+	"time"
 )
 
 const (
 	DefaultEndPoint = "/druid/v2"
 )
+
+// CacheAdapter interface for druid query result cache middleware client.
+type CacheAdapter interface {
+	// Get retrieves the cached data by a given key. It also
+	// returns true or false, whether it exists or not.
+	Get(key string) ([]byte, bool)
+
+	Set(key string, data []byte, lifespan time.Duration)
+
+	// Release frees cache for a given key.
+	Release(key string)
+}
 
 type Client struct {
 	Url          string
@@ -23,7 +34,7 @@ type Client struct {
 	LastRequest  string
 	LastResponse string
 	HttpClient   *http.Client
-	ResultCache  *cache.Cache
+	ResultCache  CacheAdapter
 }
 
 // dataKey create a md5sum key for a given data
@@ -50,10 +61,9 @@ func (c *Client) Query(query Query, authToken string) (err error) {
 	needCache := (c.ResultCache != nil && query.shouldCache())
 	if needCache {
 		qKey := dataKey(reqJson)
-		cachedVal, ok := c.ResultCache.Get(qKey)
-		if ok {
-			result = cachedVal.([]byte)
-		} else {
+		var cached bool
+		result, cached = c.ResultCache.Get(qKey)
+		if !cached {
 			result, err = c.QueryRaw(reqJson, authToken)
 			if err != nil {
 				return
