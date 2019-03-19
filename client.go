@@ -30,6 +30,7 @@ type Client struct {
 	Url          string
 	EndPoint     string
 	DataSource   string
+	AuthToken    string
 	Debug        bool
 	LastRequest  string
 	LastResponse string
@@ -45,8 +46,42 @@ func dataKey(data []byte) string {
 	return fmt.Sprintf("%x", md5.Sum(sortedBytes))
 }
 
-func (c *Client) Query(query Query, authToken string) (err error) {
+func setDataSource(query Query, ds string) error {
+	switch query.(type) {
+	case *QueryGroupBy:
+		a := query.(*QueryGroupBy)
+		a.DataSource = ds
+	case *QueryScan:
+		a := query.(*QueryScan)
+		a.DataSource = ds
+	case *QuerySearch:
+		a := query.(*QuerySearch)
+		a.DataSource = ds
+	case *QuerySelect:
+		a := query.(*QuerySelect)
+		a.DataSource = ds
+	case *QuerySegmentMetadata:
+		a := query.(*QuerySegmentMetadata)
+		a.DataSource = ds
+	case *QueryTimeBoundary:
+		a := query.(*QueryTimeBoundary)
+		a.DataSource = ds
+	case *QueryTimeseries:
+		a := query.(*QueryTimeseries)
+		a.DataSource = ds
+	case *QueryTopN:
+		a := query.(*QueryTopN)
+		a.DataSource = ds
+	default:
+		return fmt.Errorf("not support type: %v", query)
+	}
+
+	return nil
+}
+
+func (c *Client) Query(query Query) (err error) {
 	query.setup()
+	setDataSource(query, c.DataSource)
 	var reqJson []byte
 	if c.Debug {
 		reqJson, err = json.MarshalIndent(query, "", "  ")
@@ -64,14 +99,14 @@ func (c *Client) Query(query Query, authToken string) (err error) {
 		var cached bool
 		result, cached = c.ResultCache.Get(qKey)
 		if !cached {
-			result, err = c.QueryRaw(reqJson, authToken)
+			result, err = c.QueryRaw(reqJson)
 			if err != nil {
 				return
 			}
 			c.ResultCache.Set(qKey, result, 0)
 		}
 	} else {
-		result, err = c.QueryRaw(reqJson, authToken)
+		result, err = c.QueryRaw(reqJson)
 		if err != nil {
 			return
 		}
@@ -80,7 +115,7 @@ func (c *Client) Query(query Query, authToken string) (err error) {
 	return query.onResponse(result)
 }
 
-func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err error) {
+func (c *Client) QueryRaw(req []byte) (result []byte, err error) {
 	if c.EndPoint == "" {
 		c.EndPoint = DefaultEndPoint
 	}
@@ -98,10 +133,10 @@ func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err erro
 		return nil, err
 	}
 	request.Header.Set("Content-Type", "application/json")
-	if authToken != "" {
+	if c.AuthToken != "" {
 		cookie := &http.Cookie{
 			Name:  "skylight-aaa",
-			Value: authToken,
+			Value: c.AuthToken,
 		}
 		request.AddCookie(cookie)
 	}
