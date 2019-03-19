@@ -65,14 +65,14 @@ func (c *Client) Query(query Query) (err error) {
 		var cached bool
 		result, cached = c.ResultCache.Get(qKey)
 		if !cached {
-			result, err = c.QueryRaw(reqJson, c.AuthToken)
+			result, err = c.QueryRaw(reqJson)
 			if err != nil {
 				return
 			}
 			c.ResultCache.Set(qKey, result, 0)
 		}
 	} else {
-		result, err = c.QueryRaw(reqJson, c.AuthToken)
+		result, err = c.QueryRaw(reqJson)
 		if err != nil {
 			return
 		}
