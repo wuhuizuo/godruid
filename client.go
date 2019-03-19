@@ -46,8 +46,42 @@ func dataKey(data []byte) string {
 	return fmt.Sprintf("%x", md5.Sum(sortedBytes))
 }
 
+func setDataSource(query Query, ds string) error {
+	switch query.(type) {
+	case *QueryGroupBy:
+		a := query.(*QueryGroupBy)
+		a.DataSource = ds
+	case *QueryScan:
+		a := query.(*QueryScan)
+		a.DataSource = ds
+	case *QuerySearch:
+		a := query.(*QuerySearch)
+		a.DataSource = ds
+	case *QuerySelect:
+		a := query.(*QuerySelect)
+		a.DataSource = ds
+	case *QuerySegmentMetadata:
+		a := query.(*QuerySegmentMetadata)
+		a.DataSource = ds
+	case *QueryTimeBoundary:
+		a := query.(*QueryTimeBoundary)
+		a.DataSource = ds
+	case *QueryTimeseries:
+		a := query.(*QueryTimeseries)
+		a.DataSource = ds
+	case *QueryTopN:
+		a := query.(*QueryTopN)
+		a.DataSource = ds
+	default:
+		return fmt.Errorf("not support type: %v", query)
+	}
+
+	return nil
+}
+
 func (c *Client) Query(query Query) (err error) {
 	query.setup()
+	setDataSource(query, c.DataSource)
 	var reqJson []byte
 	if c.Debug {
 		reqJson, err = json.MarshalIndent(query, "", "  ")
