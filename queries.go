@@ -16,6 +16,14 @@ type Query interface {
 	shouldCache() bool
 }
 
+// The QueryCanAggregate interface stands for any kinds of druid query that can using aggregations and post aggregations
+type QueryCanAggregate interface {
+	ListAggregations() []Aggregation
+	AddAggregation(agg Aggregation)
+	ListPostAggregations() []PostAggregation
+	AddPostAggregation(postAgg PostAggregation)
+}
+
 type QueryType string
 
 const (
@@ -102,6 +110,12 @@ func (q *QueryGroupBy) onResponse(content []byte) error {
 	q.QueryResult = *res
 	q.RawJSON = content
 	return nil
+}
+func (q *QueryGroupBy) ListAggregations() []Aggregation         { return q.Aggregations }
+func (q *QueryGroupBy) AddAggregation(agg Aggregation)          { q.Aggregations = append(q.Aggregations, agg) }
+func (q *QueryGroupBy) ListPostAggregations() []PostAggregation { return q.PostAggregations }
+func (q *QueryGroupBy) AddPostAggregation(postAgg PostAggregation) {
+	q.PostAggregations = append(q.PostAggregations, postAgg)
 }
 
 // ---------------------------------
@@ -263,6 +277,14 @@ func (q *QueryTimeseries) onResponse(content []byte) error {
 	q.RawJSON = content
 	return nil
 }
+func (q *QueryTimeseries) ListAggregations() []Aggregation { return q.Aggregations }
+func (q *QueryTimeseries) AddAggregation(agg Aggregation) {
+	q.Aggregations = append(q.Aggregations, agg)
+}
+func (q *QueryTimeseries) ListPostAggregations() []PostAggregation { return q.PostAggregations }
+func (q *QueryTimeseries) AddPostAggregation(postAgg PostAggregation) {
+	q.PostAggregations = append(q.PostAggregations, postAgg)
+}
 
 // ---------------------------------
 // TopN Query
@@ -302,6 +324,12 @@ func (q *QueryTopN) onResponse(content []byte) error {
 	q.QueryResult = *res
 	q.RawJSON = content
 	return nil
+}
+func (q *QueryTopN) ListAggregations() []Aggregation         { return q.Aggregations }
+func (q *QueryTopN) AddAggregation(agg Aggregation)          { q.Aggregations = append(q.Aggregations, agg) }
+func (q *QueryTopN) ListPostAggregations() []PostAggregation { return q.PostAggregations }
+func (q *QueryTopN) AddPostAggregation(postAgg PostAggregation) {
+	q.PostAggregations = append(q.PostAggregations, postAgg)
 }
 
 // ---------------------------------
