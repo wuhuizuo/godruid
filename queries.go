@@ -32,7 +32,7 @@ const (
 	SKIPEMPTYBUCKETS         = "skipEmptyBuckets"
 	QUERYID                  = "queryId"
 	POPULATECACHE            = "populateCache"
-        POPULATERESULTLEVELCACHE = "populateResultLevelCache"
+	POPULATERESULTLEVELCACHE = "populateResultLevelCache"
 )
 
 // ---------------------------------
