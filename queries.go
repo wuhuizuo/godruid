@@ -28,9 +28,11 @@ const (
 
 // Context constants
 const (
-	TIMEOUT          = "timeout"
-	SKIPEMPTYBUCKETS = "skipEmptyBuckets"
-	QUERYID          = "queryId"
+	TIMEOUT                  = "timeout"
+	SKIPEMPTYBUCKETS         = "skipEmptyBuckets"
+	QUERYID                  = "queryId"
+	POPULATECACHE            = "populateCache"
+        POPULATERESULTLEVELCACHE = "populateResultLevelCache"
 )
 
 // ---------------------------------
