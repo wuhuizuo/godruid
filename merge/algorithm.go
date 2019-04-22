@@ -263,6 +263,4 @@ func PostAggComputeArithmetic(data map[string]interface{}, arithmeticExp []strin
 	default:
 		panic(fmt.Sprintf("not support post agg arithmetic:%s", fn))
 	}
-
-	return nil
 }
