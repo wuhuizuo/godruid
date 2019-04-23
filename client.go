@@ -66,7 +66,9 @@ func (c *Client) QueryRaw(req []byte, authToken string) (result []byte, err erro
 
 	resp, err := c.HttpClient.Do(request)
 	defer func() {
-		resp.Body.Close()
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
 	}()
 
 	if err != nil {
