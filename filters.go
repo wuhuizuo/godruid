@@ -4,6 +4,7 @@ type Filter struct {
 	Type         string        `json:"type"`
 	Dimension    string        `json:"dimension,omitempty"`
 	Value        interface{}   `json:"value,omitempty"`
+	Values       interface{}   `json:"values,omitempty"`
 	Pattern      string        `json:"pattern,omitempty"`
 	Function     string        `json:"function,omitempty"`
 	Field        *Filter       `json:"field,omitempty"`
@@ -23,6 +24,14 @@ const (
 	ALPHANUMERIC  Ordering = "alphanumeric"
 	NUMERIC       Ordering = "numeric"
 	STRLEN        Ordering = "strlen"
+)
+
+// Filter constants
+const (
+	LOWERSTRICT = "lowerStrict"
+	UPPERSTRICT = "upperStrict"
+	LOWERLIMIT  = "lowerLimit"
+	UPPERLIMIT  = "upperLimit"
 )
 
 func FilterSelector(dimension string, value interface{}) *Filter {

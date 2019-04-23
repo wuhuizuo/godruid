@@ -26,6 +26,15 @@ const (
 	SCAN            QueryType = "scan"
 )
 
+// Context constants
+const (
+	TIMEOUT                  = "timeout"
+	SKIPEMPTYBUCKETS         = "skipEmptyBuckets"
+	QUERYID                  = "queryId"
+	POPULATECACHE            = "populateCache"
+	POPULATERESULTLEVELCACHE = "populateResultLevelCache"
+)
+
 // ---------------------------------
 // GroupBy Query
 // ---------------------------------
@@ -42,9 +51,9 @@ type QueryGroupBy struct {
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
 	Intervals        Intervals              `json:"intervals"`
 	Context          map[string]interface{} `json:"context,omitempty"`
-
-	QueryResult []GroupbyItem `json:"-"`
-	RawJSON     []byte
+	VirtualColumns   []VirtualColumn        `json:"virtualColumns,omitempty"`
+	QueryResult      []GroupbyItem          `json:"-"`
+	RawJSON          []byte
 }
 
 type GroupbyItem struct {
@@ -80,9 +89,9 @@ type QuerySearch struct {
 	Query            *SearchQuery           `json:"query"`
 	Sort             *SearchSort            `json:"sort"`
 	Context          map[string]interface{} `json:"context,omitempty"`
-
-	QueryResult []SearchItem `json:"-"`
-	RawJSON     []byte
+	VirtualColumns   []VirtualColumn        `json:"virtualColumns,omitempty"`
+	QueryResult      []SearchItem           `json:"-"`
+	RawJSON          []byte
 }
 
 type SearchItem struct {
@@ -113,15 +122,15 @@ func (q *QuerySearch) onResponse(content []byte) error {
 // ---------------------------------
 
 type QuerySegmentMetadata struct {
-	QueryType  QueryType              `json:"queryType"`
-	DataSource string                 `json:"dataSource"`
-	Intervals  Intervals              `json:"intervals"`
-	ToInclude  *ToInclude             `json:"toInclude,omitempty"`
-	Merge      interface{}            `json:"merge,omitempty"`
-	Context    map[string]interface{} `json:"context,omitempty"`
-
-	QueryResult []SegmentMetaData `json:"-"`
-	RawJSON     []byte
+	QueryType      QueryType              `json:"queryType"`
+	DataSource     string                 `json:"dataSource"`
+	Intervals      Intervals              `json:"intervals"`
+	ToInclude      *ToInclude             `json:"toInclude,omitempty"`
+	Merge          interface{}            `json:"merge,omitempty"`
+	Context        map[string]interface{} `json:"context,omitempty"`
+	VirtualColumns []VirtualColumn        `json:"virtualColumns,omitempty"`
+	QueryResult    []SegmentMetaData      `json:"-"`
+	RawJSON        []byte
 }
 
 type SegmentMetaData struct {
@@ -199,9 +208,9 @@ type QueryTimeseries struct {
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
 	Intervals        Intervals              `json:"intervals"`
 	Context          map[string]interface{} `json:"context,omitempty"`
-
-	QueryResult []Timeseries `json:"-"`
-	RawJSON     []byte
+	VirtualColumns   []VirtualColumn        `json:"virtualColumns,omitempty"`
+	QueryResult      []Timeseries           `json:"-"`
+	RawJSON          []byte
 }
 
 type Timeseries struct {
@@ -238,9 +247,9 @@ type QueryTopN struct {
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
 	Intervals        Intervals              `json:"intervals"`
 	Context          map[string]interface{} `json:"context,omitempty"`
-
-	QueryResult []TopNItem `json:"-"`
-	RawJSON     []byte
+	VirtualColumns   []VirtualColumn        `json:"virtualColumns,omitempty"`
+	QueryResult      []TopNItem             `json:"-"`
+	RawJSON          []byte
 }
 
 type TopNItem struct {
@@ -266,18 +275,18 @@ func (q *QueryTopN) onResponse(content []byte) error {
 // ---------------------------------
 
 type QuerySelect struct {
-	QueryType   QueryType              `json:"queryType"`
-	DataSource  string                 `json:"dataSource"`
-	Intervals   Intervals              `json:"intervals"`
-	Filter      *Filter                `json:"filter,omitempty"`
-	Dimensions  []DimSpec              `json:"dimensions"`
-	Metrics     []string               `json:"metrics"`
-	Granularity Granlarity             `json:"granularity"`
-	PagingSpec  map[string]interface{} `json:"pagingSpec,omitempty"`
-	Context     map[string]interface{} `json:"context,omitempty"`
-
-	QueryResult SelectBlob `json:"-"`
-	RawJSON     []byte
+	QueryType      QueryType              `json:"queryType"`
+	DataSource     string                 `json:"dataSource"`
+	Intervals      Intervals              `json:"intervals"`
+	Filter         *Filter                `json:"filter,omitempty"`
+	Dimensions     []DimSpec              `json:"dimensions"`
+	Metrics        []string               `json:"metrics"`
+	Granularity    Granlarity             `json:"granularity"`
+	PagingSpec     map[string]interface{} `json:"pagingSpec,omitempty"`
+	Context        map[string]interface{} `json:"context,omitempty"`
+	VirtualColumns []VirtualColumn        `json:"virtualColumns,omitempty"`
+	QueryResult    SelectBlob             `json:"-"`
+	RawJSON        []byte
 }
 
 // Select json blob from druid comes back as following:
@@ -322,18 +331,18 @@ func (q *QuerySelect) onResponse(content []byte) error {
 // ---------------------------------
 
 type QueryScan struct {
-	QueryType    QueryType              `json:"queryType"`
-	DataSource   string                 `json:"dataSource"`
-	Limit        int                    `json:"limit,omitempty"`
-	Columns      []string               `json:"columns,omitempty"`
-	ResultFormat string                 `json:"resultFormat,omitempty"`
-	Metric       interface{}            `json:"metric"` // *TopNMetric
-	Filter       *Filter                `json:"filter,omitempty"`
-	Intervals    Intervals              `json:"intervals"`
-	Context      map[string]interface{} `json:"context,omitempty"`
-
-	QueryResult []ScanBlob `json:"-"`
-	RawJSON     []byte
+	QueryType      QueryType              `json:"queryType"`
+	DataSource     string                 `json:"dataSource"`
+	Limit          int                    `json:"limit,omitempty"`
+	Columns        []string               `json:"columns,omitempty"`
+	ResultFormat   string                 `json:"resultFormat,omitempty"`
+	Metric         interface{}            `json:"metric"` // *TopNMetric
+	Filter         *Filter                `json:"filter,omitempty"`
+	Intervals      Intervals              `json:"intervals"`
+	Context        map[string]interface{} `json:"context,omitempty"`
+	VirtualColumns []VirtualColumn        `json:"virtualColumns,omitempty"`
+	QueryResult    []ScanBlob             `json:"-"`
+	RawJSON        []byte
 }
 
 type ScanBlob struct {
@@ -354,3 +363,28 @@ func (q *QueryScan) onResponse(content []byte) error {
 	q.RawJSON = content
 	return nil
 }
+
+type VirtualColumn struct {
+	Type       string                  `json:"type"`
+	Name       string                  `json:"name"`
+	Expression string                  `json:"expression"`
+	OutputType VirtualColumnOutputType `json:"outputType"`
+}
+
+func NewVirtualColumn(name string, expression string, outputType VirtualColumnOutputType) VirtualColumn {
+	return VirtualColumn{
+		Type:       "expression",
+		Name:       name,
+		Expression: expression,
+		OutputType: outputType,
+	}
+}
+
+type VirtualColumnOutputType string
+
+const (
+	VirtualColumnLong   VirtualColumnOutputType = "LONG"
+	VirtualColumnFloat  VirtualColumnOutputType = "FLOAT"
+	VirtualColumnDouble VirtualColumnOutputType = "DOUBLE"
+	VirtualColumnString VirtualColumnOutputType = "STRING"
+)
