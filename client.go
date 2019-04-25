@@ -18,7 +18,7 @@ const (
 // * copy from https://git.code.oa.com/flarezuo/miglib/blob/master/dcache/jce/DCache/Condition.go
 type Condition struct {
 	FieldName string `json:"fieldName"`
-	Op        string     `json:"op"`
+	Op        string `json:"op"`
 	Value     string `json:"value"`
 }
 
@@ -43,16 +43,16 @@ type CacheAdapter interface {
 // GroupByCacheAdapter interface for druid group query result cache middleware client.
 type GroupByCacheAdapter interface {
 	// Select entries from cache
-	Select(query CacheSelectQuery) ([]map[string]string, int)
+	Select(query CacheSelectQuery) []map[string]string
 
 	// Insert entry into cache
-	Insert(target string, data map[string]string, lifespan time.Duration)
+	Insert(target string, data map[string]string, lifespan time.Duration) error
 
 	// delete entries from cache filter by conditions
 	Delete(query CacheSelectQuery) error
 
 	// Clean all entries at given target.
-	Clean(target string)
+	Clean(target string) error
 }
 
 type Client struct {
