@@ -175,8 +175,8 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
 		newQ := *q
 		newQ.Intervals = []string{i.ToInterval()}
 		// * 如果查询成功,则将结果merge到queryResult中。查询失败则调用原始查询函数进行查询
-		ret, count := c.GroupByCache.Select(cacheSelectQuery)
-		if count > 0 {
+		ret := c.GroupByCache.Select(cacheSelectQuery)
+		if len(ret) > 0 {
 			newQ.LoadQueryResultFromMaps(ret)
 		} else {
 			c.Query(&newQ)
