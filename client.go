@@ -14,6 +14,20 @@ const (
 	DefaultEndPoint = "/druid/v2"
 )
 
+// Condition cache query condition
+// * copy from https://git.code.oa.com/flarezuo/miglib/blob/master/dcache/jce/DCache/Condition.go
+type Condition struct {
+	FieldName string `json:"fieldName"`
+	Op        string     `json:"op"`
+	Value     string `json:"value"`
+}
+
+type CacheSelectQuery struct {
+	Target     string      `json:"target"`
+	Conditions []Condition `json:"conditions,omitempty"`
+	Fields     []string    `json:"fields,omitempty"`
+}
+
 // CacheAdapter interface for druid query result cache middleware client.
 type CacheAdapter interface {
 	// Get retrieves the cached data by a given key. It also
@@ -26,6 +40,21 @@ type CacheAdapter interface {
 	Release(key string)
 }
 
+// GroupByCacheAdapter interface for druid group query result cache middleware client.
+type GroupByCacheAdapter interface {
+	// Select entries from cache
+	Select(query CacheSelectQuery) ([]map[string]string, int)
+
+	// Insert entry into cache
+	Insert(target string, data map[string]string, lifespan time.Duration)
+
+	// delete entries from cache filter by conditions
+	Delete(query CacheSelectQuery) error
+
+	// Clean all entries at given target.
+	Clean(target string)
+}
+
 type Client struct {
 	Url          string
 	EndPoint     string
@@ -36,6 +65,7 @@ type Client struct {
 	LastResponse string
 	HttpClient   *http.Client
 	ResultCache  CacheAdapter
+	GroupByCache GroupByCacheAdapter
 }
 
 // dataKey create a md5sum key for a given data
