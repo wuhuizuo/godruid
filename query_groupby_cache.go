@@ -96,13 +96,18 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 		return ret, errors.New("TODO:now only support granularity `all`'s result merge")
 	}
 
-	// TODO: set TimePos from intervals
-	// TODO: set TimeLen from intervals
+	if len(q.Intervals) != 1 {
+		return ret, fmt.Errorf("only support when intervals has only one interval")
+	}
+	intervalSlot, iErr := parseInterval(q.Intervals[0])
+	if iErr != nil {
+		return ret, iErr
+	}
+	timePos := 	  intervalSlot.TimePos.Unix()
+	timeLen := 	  intervalSlot.TimeLen
 	groupDims := q.DimNames()
 	aggNames := q.AggNames()
 	postAggNames := q.PostAggNames()
-	aggTypes := q.aggTypes()
-	postAggExps := q.postAggExpStrings()
 
 	for _, item := range q.QueryResult {
 		groupDimVals := []string{}
@@ -119,11 +124,13 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 			postAggVals[kp] = item.Event[kp]
 		}
 		ret = append(ret, PersistenceRow{
+			TimePos: 	  timePos,
+			TimeLen: 	  timeLen,
 			GroupDims:    groupDims,
 			AggNames:     aggNames,
 			PostAggNames: postAggNames,
-			AggTypes:     aggTypes,
-			PostAggExps:  postAggExps,
+			AggTypes:     q.aggTypes(),
+			PostAggExps:  q.postAggExpStrings(),
 			GroupDimVals: groupDimVals,
 			AggVals:      aggVals,
 			PostAggVals:  postAggVals,
@@ -222,7 +229,6 @@ func (c *Client) QueryGroupBy(query *QueryGroupBy, cacheIndex string) error {
 	}
 	return query.CacheQuery(c, cacheIndex)
 }
-
 
 func jsonStr(data interface{}) string {
 	b, _ := json.Marshal(data)
