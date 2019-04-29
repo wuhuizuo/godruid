@@ -2,8 +2,9 @@ package godruid
 
 import (
 	"fmt"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGroupby(t *testing.T) {
@@ -15,7 +16,7 @@ func TestGroupby(t *testing.T) {
 			Filter:       FilterAnd(FilterJavaScript("hour", "function(x) { return(x >= 1) }"), nil),
 			LimitSpec:    LimitDefault(5),
 			Dimensions:   []DimSpec{"campaign_id"},
-			Aggregations: []Aggregation{AggRawJson(`{ "type" : "count", "name" : "count" }`), AggLongSum("impressions", "impressions")},
+			Aggregations: []Aggregation{*AggRawJson(`{ "type" : "count", "name" : "count" }`), *AggLongSum("impressions", "impressions")},
 			PostAggregations: []PostAggregation{PostAggArithmetic("imp/count", "/", []PostAggregation{
 				PostAggFieldAccessor("impressions"),
 				PostAggRawJson(`{ "type" : "fieldAccess", "fieldName" : "count" }`)})},
