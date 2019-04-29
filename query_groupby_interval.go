@@ -12,22 +12,28 @@ type IntervalSlot struct {
 }
 
 func (i *IntervalSlot) ToInterval() string {
-	endTime := i.TimePos.Add(time.Duration(i.TimeLen))
-	return fmt.Sprintf("%v/%v", i.TimePos, endTime)
+	startTimeStr := i.TimePos.Format(time.RFC3339)
+	endTime := i.TimePos.Add(time.Duration(i.TimeLen) * time.Second)
+	endTimeStr := endTime.Format(time.RFC3339)
+	return fmt.Sprintf("%s/%s", startTimeStr, endTimeStr)
 }
 
 // DistributeQuery split intervals to whole days and hours
-func (q *QueryGroupBy) distributeIntervalSlots() []IntervalSlot {
+func (q *QueryGroupBy) distributeIntervalSlots() ([]IntervalSlot, error) {
 	ret := []IntervalSlot{}
 	for _, i := range q.Intervals {
-		for _, intervalSlot := range distributeIntervals(i) {
+		intervalSlots, err := distributeIntervals(i)
+		if err != nil {
+			return ret, err
+		}
+		for _, intervalSlot := range intervalSlots {
 			ret = append(ret, intervalSlot)
 		}
 	}
-	return ret
+	return ret, nil
 }
 
-func distributeIntervals(interval string) []IntervalSlot {
+func distributeIntervals(interval string) ([]IntervalSlot, error) {
 	ret := []IntervalSlot{}
 	intervalSlot, err := parseInterval(interval)
 	if err == nil {
@@ -63,7 +69,7 @@ func distributeIntervals(interval string) []IntervalSlot {
 			}
 		}
 	}
-	return ret
+	return ret, err
 }
 
 func distributeDays(intervalSlot IntervalSlot) (*IntervalSlot, []IntervalSlot, *IntervalSlot) {

@@ -17,7 +17,7 @@ type PersistenceRow struct {
 	PostAggNames []string               `json:"postAggNames"` // UKey, example: avg_speed, avg_file_size
 	GroupDimVals []string               `json:"groupDimVals"` // Value, json array
 	AggTypes     []string               `json:"aggTypes"`     // Value, json array
-	PostAggExps  []string               `json:"PostAggExps"`  // Value, json map
+	PostAggExps  []string               `json:"postAggExps"`  // Value, json map
 	AggVals      map[string]interface{} `json:"aggVals"`      // Value, json map
 	PostAggVals  map[string]interface{} `json:"postAggVals"`  // Value, json map
 }
@@ -56,36 +56,32 @@ func (r *PersistenceRow) ParseFrom(row map[string]string) error {
 // ToCacheRow convert to map[string]string
 func (r *PersistenceRow) ToCacheRow() map[string]string {
 	row := map[string]string{}
-	var tmpRow map[string]interface{}
-	retBytes, _ := json.Marshal(r)
-	json.Unmarshal(retBytes, &tmpRow)
-
-	for k, v := range tmpRow {
-		switch v.(type) {
-		case int32, int, int64:
-			row[k] = fmt.Sprintf("%d", v)
-		case string:
-			row[k] = v.(string)
-		case []string, map[string]interface{}:
-			vBytes, _ := json.Marshal(v)
-			row[k] = string(vBytes)
-		default:
-			// nothing
-		}
-
-	}
+	row["timePos"] = fmt.Sprintf("%d", r.TimePos)
+	row["timeLen"] = fmt.Sprintf("%d", r.TimeLen)
+	bs1, _ := json.Marshal(r.GroupDims   );row["groupDims"] 	= string(bs1)
+	bs2, _ := json.Marshal(r.AggNames    );row["aggNames"] 		= string(bs2)
+	bs3, _ := json.Marshal(r.PostAggNames);row["postAggNames"] 	= string(bs3)
+	bs4, _ := json.Marshal(r.GroupDimVals);row["groupDimVals"] 	= string(bs4)
+	bs5, _ := json.Marshal(r.AggTypes    );row["aggTypes"] 		= string(bs5)
+	bs6, _ := json.Marshal(r.PostAggExps );row["postAggExps"] 	= string(bs6)
+	bs7, _ := json.Marshal(r.AggVals     );row["aggVals"] 		= string(bs7)
+	bs8, _ := json.Marshal(r.PostAggVals );row["postAggVals"] 	= string(bs8)
 	return row
 }
 
 // DistributeQuery split intervals to whole days and hours
-func (q *QueryGroupBy) DistributeQuery() QueryGroupBy {
+func (q *QueryGroupBy) DistributeQuery() (QueryGroupBy, error) {
 	newQ := *q
 	intervals := []string{}
-	for _, intervalSlot := range q.distributeIntervalSlots() {
+	intervalSlots, err := q.distributeIntervalSlots()
+	if err != nil {
+		return newQ, err
+	}
+	for _, intervalSlot := range intervalSlots {
 		intervals = append(intervals, intervalSlot.ToInterval())
 	}
 	newQ.Intervals = intervals
-	return newQ
+	return newQ, nil
 }
 
 // PersistenceRows convert query result to persistence rows
@@ -173,10 +169,21 @@ func (q *QueryGroupBy) LoadQueryResultFromPersistenceRows(pRows []PersistenceRow
 
 // CacheQuery query with attached cached
 func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
+	if target == "" {
+		return c.Query(q)
+	}
+
 	c3 := q.conditionGroupDims()
 	c4 := q.conditionAggNames()
 	c5 := q.conditionPostAggNames()
-	for _, i := range q.distributeIntervalSlots() {
+	intervalSlots, err := q.distributeIntervalSlots()
+	if err != nil {
+		return err
+	}
+
+	q.setup()
+	setDataSource(q, c.DataSource)
+	for _, i := range intervalSlots {
 		selectConditions := []Condition{q.conditionTimePos(i.TimePos), q.conditionTimeLen(i.TimeLen), c3, c4, c5}
 		cacheSelectQuery := CacheSelectQuery{Target: target, Conditions: selectConditions}
 		newQ := *q
@@ -184,9 +191,14 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
 		// * 如果查询成功,则将结果merge到queryResult中。查询失败则调用原始查询函数进行查询
 		ret := c.GroupByCache.Select(cacheSelectQuery)
 		if len(ret) > 0 {
+			newQ.setup()
+			setDataSource(&newQ, c.DataSource)
 			newQ.LoadQueryResultFromMaps(ret)
 		} else {
-			c.Query(&newQ)
+			err := c.Query(&newQ)
+			if err != nil {
+				return err
+			}
 		}
 		q.Merge(&newQ)
 	}

@@ -25,8 +25,8 @@ func (q *QueryGroupBy) DimNames() []string {
 		switch dim.(type) {
 		case string:
 			ret = append(ret, dim.(string))
-		case Dimension:
-			ret = append(ret, dim.(Dimension).OutputName)
+		case *Dimension:
+			ret = append(ret, dim.(*Dimension).OutputName)
 		case TimeExtractionDimensionSpec:
 			panic("not support for TimeExtractionDimensionSpec")
 		}
@@ -136,7 +136,7 @@ func (q *QueryGroupBy) canMerge(oq *QueryGroupBy) error {
 	if reflect.DeepEqual(q.Intervals, oq.Intervals) {
 		return errors.New("can not merge with same intervals")
 	}
-	if !(q.DataSource == oq.DataSource) {
+	if q.DataSource != oq.DataSource {
 		return errors.New("DataSource is not same")
 	}
 	if !reflect.DeepEqual(q.Context, oq.Context) {
