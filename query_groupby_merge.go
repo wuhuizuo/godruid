@@ -88,8 +88,10 @@ func (q *QueryGroupBy) mergeQueryResult(oResult []GroupbyItem) {
 		switch cI {
 		case merge.CompareEQ:
 			if eventCanMerge(dimNames, q.QueryResult[iR].Event, oResult[iO].Event) {
-				mergedEvent := mergeEvent(q.QueryResult[iR].Event, oResult[iO].Event, aggNames, aggTypes)
-				q.QueryResult[iR].Event = mergedEvent
+				mergedEventAggParts := mergeEvent(q.QueryResult[iR].Event, oResult[iO].Event, aggNames, aggTypes)
+				for k, v := range mergedEventAggParts {
+					q.QueryResult[iR].Event[k] = v
+				}
 				newResult = append(newResult, q.QueryResult[iR])
 				iR++
 				iO++
