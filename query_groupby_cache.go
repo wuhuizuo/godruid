@@ -169,7 +169,9 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 	if target == "" {
 		return c.Query(q)
 	}
-
+	q.setup()
+	setDataSource(q, c.DataSource)
+	
 	c3 := q.conditionGroupDims()
 	c4 := q.conditionAggNames()
 	c5 := q.conditionPostAggNames()
@@ -178,8 +180,6 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 		return err
 	}
 
-	q.setup()
-	setDataSource(q, c.DataSource)
 	for _, i := range intervalSlots {
 		selectConditions := []Condition{q.conditionTimePos(i.TimePos), q.conditionTimeLen(i.TimeLen), c3, c4, c5}
 		cacheSelectQuery := CacheSelectQuery{Target: target, Conditions: selectConditions}
@@ -198,12 +198,14 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 			}
 			if writeback {
 				rows, _ := newQ.PersistenceRows()
+				entries := []map[string]string{}
 				for _, row := range rows {
-					// TODO: h.QueryClient.GroupByCache实现批量插入的接口
-					err := c.GroupByCache.Insert(target, row.ToCacheRow(), 0)
-					if err != nil {
-						return err
-					}
+					entries = append(entries, row.ToCacheRow())
+				}
+				err := c.GroupByCache.InsertBatch(target, entries, 0)
+
+				if err != nil {
+					return err
 				}
 			}
 		}
