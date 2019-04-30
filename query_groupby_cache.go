@@ -32,21 +32,18 @@ func (r *PersistenceRow) ParseFrom(row map[string]string) error {
 			if err != nil {
 				return fmt.Errorf("`%s` is not number format(%#v)", k, v)
 			}
-			newRow[k] = int32(iv)
-		case "groupDims", "aggNames", "postAggNames", "groupDimVals", "aggTypes", "PostAggExps":
-			arrBytes, _ := json.Marshal(v)
-			var arrVals []string
-			json.Unmarshal(arrBytes, &arrVals)
+			newRow[k] = iv
+		case "groupDims", "aggNames", "postAggNames", "groupDimVals", "aggTypes", "postAggExps":
+			arrVals := []string{}
+			json.Unmarshal([]byte(v), &arrVals)
 			newRow[k] = arrVals
 		case "aggVals", "postAggVals":
-			mapBytes, _ := json.Marshal(v)
-			var mapVals map[string]interface{}
-			json.Unmarshal(mapBytes, &mapVals)
+			mapVals := map[string]interface{}{}
+			json.Unmarshal([]byte(v), &mapVals)
 			newRow[k] = mapVals
 		default:
 			newRow[k] = v
 		}
-
 	}
 
 	retBytes, _ := json.Marshal(newRow)
@@ -168,7 +165,7 @@ func (q *QueryGroupBy) LoadQueryResultFromPersistenceRows(pRows []PersistenceRow
 }
 
 // CacheQuery query with attached cached
-func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
+func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) error {
 	if target == "" {
 		return c.Query(q)
 	}
@@ -199,6 +196,16 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
 			if err != nil {
 				return err
 			}
+			if writeback {
+				rows, _ := newQ.PersistenceRows()
+				for _, row := range rows {
+					// TODO: h.QueryClient.GroupByCache实现批量插入的接口
+					err := c.GroupByCache.Insert(target, row.ToCacheRow(), 0)
+					if err != nil {
+						return err
+					}
+				}
+			}
 		}
 		q.Merge(&newQ)
 	}
@@ -207,11 +214,11 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
 }
 
 func (q *QueryGroupBy) conditionTimePos(t time.Time) Condition {
-	return Condition{FieldName: "timePos", Op: "=", Value: string(t.Unix())}
+	return Condition{FieldName: "timePos", Op: "=", Value: strconv.FormatInt(t.Unix(), 10)}
 }
 
 func (q *QueryGroupBy) conditionTimeLen(timeLen int64) Condition {
-	return Condition{FieldName: "timeLen", Op: "=", Value: string(timeLen)}
+	return Condition{FieldName: "timeLen", Op: "=", Value: strconv.FormatInt(timeLen, 10)}
 }
 
 func (q *QueryGroupBy) conditionGroupDims() Condition {
@@ -235,11 +242,11 @@ func (q *QueryGroupBy) conditionPostAggExps() Condition {
 }
 
 // QueryGroupBy special query for GroupBy type query
-func (c *Client) QueryGroupBy(query *QueryGroupBy, cacheIndex string) error {
+func (c *Client) QueryGroupBy(query *QueryGroupBy, cacheIndex string, writeback bool) error {
 	if cacheIndex == "" {
 		return c.Query(query)
 	}
-	return query.CacheQuery(c, cacheIndex)
+	return query.CacheQuery(c, cacheIndex, writeback)
 }
 
 func jsonStr(data interface{}) string {
