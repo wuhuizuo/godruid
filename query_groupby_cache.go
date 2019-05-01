@@ -10,16 +10,16 @@ import (
 
 // PersistenceRow  for persistence StaticTable's row
 type PersistenceRow struct {
-	TimePos      int64                  `json:"timePos"`      // UKey, example: 15555555555555
-	TimeLen      int64                  `json:"timeLen"`      // UKey, example: 3600(hour)
-	GroupDims    []string               `json:"groupDims"`    // UKey, example: OS,AppVersion,AppBuildNum
-	AggNames     []string               `json:"aggNames"`     // UKey, example: total_file_size, total_time_cost
-	PostAggNames []string               `json:"postAggNames"` // UKey, example: avg_speed, avg_file_size
-	GroupDimVals []string               `json:"groupDimVals"` // Value, json array
-	AggTypes     []string               `json:"aggTypes"`     // Value, json array
-	PostAggExps  []string               `json:"postAggExps"`  // Value, json map
-	AggVals      map[string]interface{} `json:"aggVals"`      // Value, json map
-	PostAggVals  map[string]interface{} `json:"postAggVals"`  // Value, json map
+	TimePos      int64         `json:"timePos"`      // UKey, example: 15555555555555
+	TimeLen      int64         `json:"timeLen"`      // UKey, example: 3600(hour)
+	GroupDims    []string      `json:"groupDims"`    // UKey, example: OS,AppVersion,AppBuildNum
+	AggNames     []string      `json:"aggNames"`     // UKey, example: total_file_size, total_time_cost
+	PostAggNames []string      `json:"postAggNames"` // UKey, example: avg_speed, avg_file_size
+	GroupDimVals []string      `json:"groupDimVals"` // Value, json array
+	AggTypes     []string      `json:"aggTypes"`     // Value, json array
+	PostAggExps  []string      `json:"postAggExps"`  // Value, json map
+	AggVals      []interface{} `json:"aggVals"`      // Value, json map
+	PostAggVals  []interface{} `json:"postAggVals"`  // Value, json map
 }
 
 // ParseFrom string-string key-value pairs
@@ -32,21 +32,18 @@ func (r *PersistenceRow) ParseFrom(row map[string]string) error {
 			if err != nil {
 				return fmt.Errorf("`%s` is not number format(%#v)", k, v)
 			}
-			newRow[k] = int32(iv)
-		case "groupDims", "aggNames", "postAggNames", "groupDimVals", "aggTypes", "PostAggExps":
-			arrBytes, _ := json.Marshal(v)
-			var arrVals []string
-			json.Unmarshal(arrBytes, &arrVals)
+			newRow[k] = iv
+		case "groupDims", "aggNames", "postAggNames", "groupDimVals", "aggTypes", "postAggExps":
+			arrVals := []string{}
+			json.Unmarshal([]byte(v), &arrVals)
 			newRow[k] = arrVals
 		case "aggVals", "postAggVals":
-			mapBytes, _ := json.Marshal(v)
-			var mapVals map[string]interface{}
-			json.Unmarshal(mapBytes, &mapVals)
-			newRow[k] = mapVals
+			arrVals := []interface{}{}
+			json.Unmarshal([]byte(v), &arrVals)
+			newRow[k] = arrVals
 		default:
 			newRow[k] = v
 		}
-
 	}
 
 	retBytes, _ := json.Marshal(newRow)
@@ -107,17 +104,17 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 
 	for _, item := range q.QueryResult {
 		groupDimVals := []string{}
-		aggVals := map[string]interface{}{}
-		postAggVals := map[string]interface{}{}
+		aggVals := []interface{}{}
+		postAggVals := []interface{}{}
 		for _, k := range groupDims {
 			v, _ := item.Event[k]
 			groupDimVals = append(groupDimVals, v.(string))
 		}
 		for _, k := range aggNames {
-			aggVals[k] = item.Event[k]
+			aggVals = append(aggVals, item.Event[k])
 		}
 		for _, kp := range postAggNames {
-			postAggVals[kp] = item.Event[kp]
+			postAggVals = append(postAggVals, item.Event[kp])
 		}
 		ret = append(ret, PersistenceRow{
 			TimePos: 	  timePos,
@@ -156,11 +153,11 @@ func (q *QueryGroupBy) LoadQueryResultFromPersistenceRows(pRows []PersistenceRow
 		for i, d := range row.GroupDims {
 			event[d] = row.GroupDimVals[i]
 		}
-		for k, v := range row.AggVals {
-			event[k] = v
+		for i, k := range row.AggNames {
+			event[k] = row.AggVals[i]
 		}
-		for k, v := range row.PostAggVals {
-			event[k] = v
+		for i, k := range row.PostAggNames {
+			event[k] = row.PostAggVals[i]
 		}
 		q.QueryResult = append(q.QueryResult, GroupbyItem{Event: event})
 	}
@@ -168,10 +165,12 @@ func (q *QueryGroupBy) LoadQueryResultFromPersistenceRows(pRows []PersistenceRow
 }
 
 // CacheQuery query with attached cached
-func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
+func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) error {
 	if target == "" {
 		return c.Query(q)
 	}
+	q.setup()
+	setDataSource(q, c.DataSource)
 
 	c3 := q.conditionGroupDims()
 	c4 := q.conditionAggNames()
@@ -181,8 +180,6 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
 		return err
 	}
 
-	q.setup()
-	setDataSource(q, c.DataSource)
 	for _, i := range intervalSlots {
 		selectConditions := []Condition{q.conditionTimePos(i.TimePos), q.conditionTimeLen(i.TimeLen), c3, c4, c5}
 		cacheSelectQuery := CacheSelectQuery{Target: target, Conditions: selectConditions}
@@ -199,6 +196,18 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
 			if err != nil {
 				return err
 			}
+			if writeback {
+				rows, _ := newQ.PersistenceRows()
+				entries := []map[string]string{}
+				for _, row := range rows {
+					entries = append(entries, row.ToCacheRow())
+				}
+				err := c.GroupByCache.InsertBatch(target, entries, 0)
+
+				if err != nil {
+					return err
+				}
+			}
 		}
 		q.Merge(&newQ)
 	}
@@ -207,11 +216,11 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string) error {
 }
 
 func (q *QueryGroupBy) conditionTimePos(t time.Time) Condition {
-	return Condition{FieldName: "timePos", Op: "=", Value: string(t.Unix())}
+	return Condition{FieldName: "timePos", Op: "=", Value: strconv.FormatInt(t.Unix(), 10)}
 }
 
 func (q *QueryGroupBy) conditionTimeLen(timeLen int64) Condition {
-	return Condition{FieldName: "timeLen", Op: "=", Value: string(timeLen)}
+	return Condition{FieldName: "timeLen", Op: "=", Value: strconv.FormatInt(timeLen, 10)}
 }
 
 func (q *QueryGroupBy) conditionGroupDims() Condition {
@@ -235,11 +244,11 @@ func (q *QueryGroupBy) conditionPostAggExps() Condition {
 }
 
 // QueryGroupBy special query for GroupBy type query
-func (c *Client) QueryGroupBy(query *QueryGroupBy, cacheIndex string) error {
+func (c *Client) QueryGroupBy(query *QueryGroupBy, cacheIndex string, writeback bool) error {
 	if cacheIndex == "" {
 		return c.Query(query)
 	}
-	return query.CacheQuery(c, cacheIndex)
+	return query.CacheQuery(c, cacheIndex, writeback)
 }
 
 func jsonStr(data interface{}) string {

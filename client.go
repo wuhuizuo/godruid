@@ -46,7 +46,10 @@ type GroupByCacheAdapter interface {
 	Select(query CacheSelectQuery) []map[string]string
 
 	// Insert entry into cache
-	Insert(target string, data map[string]string, lifespan time.Duration) error
+	Insert(target string, entry map[string]string, lifespan time.Duration) error
+
+	// InsertBatch batch insert entries into cache
+	InsertBatch(target string, entries []map[string]string, lifespan time.Duration) error
 
 	// delete entries from cache filter by conditions
 	Delete(query CacheSelectQuery) error
