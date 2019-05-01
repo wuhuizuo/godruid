@@ -25,9 +25,11 @@ func (q *QueryGroupBy) DimNames() []string {
 		switch dim.(type) {
 		case string:
 			ret = append(ret, dim.(string))
+		case Dimension:
+			ret = append(ret, dim.(Dimension).OutputName)
 		case *Dimension:
 			ret = append(ret, dim.(*Dimension).OutputName)
-		case TimeExtractionDimensionSpec:
+		case TimeExtractionDimensionSpec, *TimeExtractionDimensionSpec:
 			panic("not support for TimeExtractionDimensionSpec")
 		}
 	}
