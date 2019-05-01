@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func Test_parseInterval(t *testing.T) {
+func Test_ParseInterval(t *testing.T) {
 	cstTimeZone, _ := time.LoadLocation("Local")
 	tests := []struct {
 		name     string
@@ -35,13 +35,13 @@ func Test_parseInterval(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := parseInterval(tt.interval)
+			got, err := ParseInterval(tt.interval)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("parseInterval() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ParseInterval() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("parseInterval() = %v, want %v", got, tt.want)
+				t.Errorf("ParseInterval() = %v, want %v", got, tt.want)
 			}
 		})
 	}
