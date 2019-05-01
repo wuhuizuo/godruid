@@ -10,16 +10,16 @@ import (
 
 // PersistenceRow  for persistence StaticTable's row
 type PersistenceRow struct {
-	TimePos      int64                  `json:"timePos"`      // UKey, example: 15555555555555
-	TimeLen      int64                  `json:"timeLen"`      // UKey, example: 3600(hour)
-	GroupDims    []string               `json:"groupDims"`    // UKey, example: OS,AppVersion,AppBuildNum
-	AggNames     []string               `json:"aggNames"`     // UKey, example: total_file_size, total_time_cost
-	PostAggNames []string               `json:"postAggNames"` // UKey, example: avg_speed, avg_file_size
-	GroupDimVals []string               `json:"groupDimVals"` // Value, json array
-	AggTypes     []string               `json:"aggTypes"`     // Value, json array
-	PostAggExps  []string               `json:"postAggExps"`  // Value, json map
-	AggVals      map[string]interface{} `json:"aggVals"`      // Value, json map
-	PostAggVals  map[string]interface{} `json:"postAggVals"`  // Value, json map
+	TimePos      int64         `json:"timePos"`      // UKey, example: 15555555555555
+	TimeLen      int64         `json:"timeLen"`      // UKey, example: 3600(hour)
+	GroupDims    []string      `json:"groupDims"`    // UKey, example: OS,AppVersion,AppBuildNum
+	AggNames     []string      `json:"aggNames"`     // UKey, example: total_file_size, total_time_cost
+	PostAggNames []string      `json:"postAggNames"` // UKey, example: avg_speed, avg_file_size
+	GroupDimVals []string      `json:"groupDimVals"` // Value, json array
+	AggTypes     []string      `json:"aggTypes"`     // Value, json array
+	PostAggExps  []string      `json:"postAggExps"`  // Value, json map
+	AggVals      []interface{} `json:"aggVals"`      // Value, json map
+	PostAggVals  []interface{} `json:"postAggVals"`  // Value, json map
 }
 
 // ParseFrom string-string key-value pairs
@@ -38,9 +38,9 @@ func (r *PersistenceRow) ParseFrom(row map[string]string) error {
 			json.Unmarshal([]byte(v), &arrVals)
 			newRow[k] = arrVals
 		case "aggVals", "postAggVals":
-			mapVals := map[string]interface{}{}
-			json.Unmarshal([]byte(v), &mapVals)
-			newRow[k] = mapVals
+			arrVals := []interface{}{}
+			json.Unmarshal([]byte(v), &arrVals)
+			newRow[k] = arrVals
 		default:
 			newRow[k] = v
 		}
@@ -104,17 +104,17 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 
 	for _, item := range q.QueryResult {
 		groupDimVals := []string{}
-		aggVals := map[string]interface{}{}
-		postAggVals := map[string]interface{}{}
+		aggVals := []interface{}{}
+		postAggVals := []interface{}{}
 		for _, k := range groupDims {
 			v, _ := item.Event[k]
 			groupDimVals = append(groupDimVals, v.(string))
 		}
 		for _, k := range aggNames {
-			aggVals[k] = item.Event[k]
+			aggVals = append(aggVals, item.Event[k])
 		}
 		for _, kp := range postAggNames {
-			postAggVals[kp] = item.Event[kp]
+			postAggVals = append(postAggVals, item.Event[kp])
 		}
 		ret = append(ret, PersistenceRow{
 			TimePos: 	  timePos,
@@ -153,11 +153,11 @@ func (q *QueryGroupBy) LoadQueryResultFromPersistenceRows(pRows []PersistenceRow
 		for i, d := range row.GroupDims {
 			event[d] = row.GroupDimVals[i]
 		}
-		for k, v := range row.AggVals {
-			event[k] = v
+		for i, k := range row.AggNames {
+			event[k] = row.AggVals[i]
 		}
-		for k, v := range row.PostAggVals {
-			event[k] = v
+		for i, k := range row.PostAggNames {
+			event[k] = row.PostAggVals[i]
 		}
 		q.QueryResult = append(q.QueryResult, GroupbyItem{Event: event})
 	}
@@ -171,7 +171,7 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 	}
 	q.setup()
 	setDataSource(q, c.DataSource)
-	
+
 	c3 := q.conditionGroupDims()
 	c4 := q.conditionAggNames()
 	c5 := q.conditionPostAggNames()
