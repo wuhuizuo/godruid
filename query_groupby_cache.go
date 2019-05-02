@@ -166,9 +166,10 @@ func (q *QueryGroupBy) LoadQueryResultFromPersistenceRows(pRows []PersistenceRow
 
 // CacheQuery query with attached cached
 func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) error {
-	if target == "" {
+	if c.GroupByCache == nil || target == "" {
 		return c.Query(q)
 	}
+
 	q.setup()
 	setDataSource(q, c.DataSource)
 
@@ -245,7 +246,7 @@ func (q *QueryGroupBy) conditionPostAggExps() Condition {
 
 // QueryGroupBy special query for GroupBy type query
 func (c *Client) QueryGroupBy(query *QueryGroupBy, cacheIndex string, writeback bool) error {
-	if cacheIndex == "" {
+	if c.GroupByCache == nil || cacheIndex == "" {
 		return c.Query(query)
 	}
 	return query.CacheQuery(c, cacheIndex, writeback)
