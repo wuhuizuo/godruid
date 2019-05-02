@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"strings"
 )
+
 // IntervalSlot query interval slot item
 type IntervalSlot struct {
 	TimePos time.Time `json:"timePos"`
 	TimeLen int64     `json:"timeLen"`
 }
 
+// ToInterval to interval string
 func (i *IntervalSlot) ToInterval() string {
 	startTimeStr := i.TimePos.Format(time.RFC3339)
 	endTime := i.TimePos.Add(time.Duration(i.TimeLen) * time.Second)
@@ -18,11 +20,11 @@ func (i *IntervalSlot) ToInterval() string {
 	return fmt.Sprintf("%s/%s", startTimeStr, endTimeStr)
 }
 
-// DistributeQuery split intervals to whole days and hours
-func (q *QueryGroupBy) distributeIntervalSlots() ([]IntervalSlot, error) {
+// DistributeIntervalSlots split intervals to whole days and hours
+func (q *QueryGroupBy) DistributeIntervalSlots() ([]IntervalSlot, error) {
 	ret := []IntervalSlot{}
 	for _, i := range q.Intervals {
-		intervalSlots, err := distributeIntervals(i)
+		intervalSlots, err := DistributeIntervals(i)
 		if err != nil {
 			return ret, err
 		}
@@ -33,14 +35,16 @@ func (q *QueryGroupBy) distributeIntervalSlots() ([]IntervalSlot, error) {
 	return ret, nil
 }
 
-func distributeIntervals(interval string) ([]IntervalSlot, error) {
+
+// DistributeIntervals distribute interval to serval interval slots, minium to hour
+func DistributeIntervals(interval string) ([]IntervalSlot, error) {
 	ret := []IntervalSlot{}
-	intervalSlot, err := parseInterval(interval)
+	intervalSlot, err := ParseInterval(interval)
 	if err == nil {
 		// TODO: 按年，月，周
-		dSi, dIs, dEi := distributeDays(*intervalSlot)
+		dSi, dIs, dEi := DistributeDays(*intervalSlot)
 		if dSi != nil {
-			hSi, hIs, hEi := distributeHours(*dSi)
+			hSi, hIs, hEi := DistributeHours(*dSi)
 
 			if hSi != nil {
 				ret = append(ret, *hSi)
@@ -56,7 +60,7 @@ func distributeIntervals(interval string) ([]IntervalSlot, error) {
 			ret = append(ret, di)
 		}
 		if dEi != nil {
-			hSi, hIs, hEi := distributeHours(*dEi)
+			hSi, hIs, hEi := DistributeHours(*dEi)
 
 			if hSi != nil {
 				ret = append(ret, *hSi)
@@ -72,7 +76,8 @@ func distributeIntervals(interval string) ([]IntervalSlot, error) {
 	return ret, err
 }
 
-func distributeDays(intervalSlot IntervalSlot) (*IntervalSlot, []IntervalSlot, *IntervalSlot) {
+// DistributeDays distribute interval to serval day interval slots
+func DistributeDays(intervalSlot IntervalSlot) (*IntervalSlot, []IntervalSlot, *IntervalSlot) {
 	var startIntervalSlot *IntervalSlot
 	var endIntervalSlot *IntervalSlot
 	daysTimeStarts := []IntervalSlot{}
@@ -99,7 +104,8 @@ func distributeDays(intervalSlot IntervalSlot) (*IntervalSlot, []IntervalSlot, *
 	return startIntervalSlot, daysTimeStarts, endIntervalSlot
 }
 
-func distributeHours(intervalSlot IntervalSlot) (*IntervalSlot, []IntervalSlot, *IntervalSlot) {
+// DistributeHours distribute interval to serval hour interval slots
+func DistributeHours(intervalSlot IntervalSlot) (*IntervalSlot, []IntervalSlot, *IntervalSlot) {
 	var startIntervalSlot *IntervalSlot
 	var endIntervalSlot *IntervalSlot
 	daysTimeStarts := []IntervalSlot{}
@@ -126,7 +132,7 @@ func distributeHours(intervalSlot IntervalSlot) (*IntervalSlot, []IntervalSlot, 
 	return startIntervalSlot, daysTimeStarts, endIntervalSlot
 }
 
-func parseInterval(interval string) (*IntervalSlot, error) {
+func ParseInterval(interval string) (*IntervalSlot, error) {
 	timeRange := strings.SplitN(interval, "/", 2)
 	if len(timeRange) != 2 {
 		return nil, fmt.Errorf("interval(%s) format is invalid", interval)

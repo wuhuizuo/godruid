@@ -70,7 +70,7 @@ func (r *PersistenceRow) ToCacheRow() map[string]string {
 func (q *QueryGroupBy) DistributeQuery() (QueryGroupBy, error) {
 	newQ := *q
 	intervals := []string{}
-	intervalSlots, err := q.distributeIntervalSlots()
+	intervalSlots, err := q.DistributeIntervalSlots()
 	if err != nil {
 		return newQ, err
 	}
@@ -92,7 +92,7 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 	if len(q.Intervals) != 1 {
 		return ret, fmt.Errorf("only support when intervals has only one interval")
 	}
-	intervalSlot, iErr := parseInterval(q.Intervals[0])
+	intervalSlot, iErr := ParseInterval(q.Intervals[0])
 	if iErr != nil {
 		return ret, iErr
 	}
@@ -166,16 +166,17 @@ func (q *QueryGroupBy) LoadQueryResultFromPersistenceRows(pRows []PersistenceRow
 
 // CacheQuery query with attached cached
 func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) error {
-	if target == "" {
+	if c.GroupByCache == nil || target == "" {
 		return c.Query(q)
 	}
+
 	q.setup()
 	setDataSource(q, c.DataSource)
 
 	c3 := q.conditionGroupDims()
 	c4 := q.conditionAggNames()
 	c5 := q.conditionPostAggNames()
-	intervalSlots, err := q.distributeIntervalSlots()
+	intervalSlots, err := q.DistributeIntervalSlots()
 	if err != nil {
 		return err
 	}
@@ -245,7 +246,7 @@ func (q *QueryGroupBy) conditionPostAggExps() Condition {
 
 // QueryGroupBy special query for GroupBy type query
 func (c *Client) QueryGroupBy(query *QueryGroupBy, cacheIndex string, writeback bool) error {
-	if cacheIndex == "" {
+	if c.GroupByCache == nil || cacheIndex == "" {
 		return c.Query(query)
 	}
 	return query.CacheQuery(c, cacheIndex, writeback)
