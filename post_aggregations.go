@@ -15,12 +15,12 @@ type PostAggregation struct {
 	Function    string            `json:"function,omitempty"`
 	Fraction    float64           `json:"fraction,omitempty"`    // druid-datasketches extension - quantiles
 	Fractions   []float64         `json:"fractions,omitempty"`   // druid-datasketches extension - quantiles
-	Field       FieldRef          `json:"field,omitempty"`       // druid-datasketches extension
+	Field       *FieldRef         `json:"field,omitempty"`       // druid-datasketches extension
 	SplitPoints []float64         `json:"splitPoints,omitempty"` // druid-datasketches extension - histogram
 }
 
 type FieldRef struct {
-	Type      string `json:"type"`
+	Type      string `json:"type,omitempty"`
 	FieldName string `json:"fieldName,omitempty"`
 }
 
@@ -117,7 +117,7 @@ func ExtPostAggQuantile(name, fieldName string, fraction float64) PostAggregatio
 	return PostAggregation{
 		Type: "quantilesDoublesSketchToQuantile",
 		Name: name,
-		Field: FieldRef{
+		Field: &FieldRef{
 			Type:      "fieldAccess",
 			FieldName: fieldName,
 		},
@@ -130,7 +130,7 @@ func ExtPostAggQuantiles(name, fieldName string, fractions []float64) PostAggreg
 	return PostAggregation{
 		Type: "quantilesDoublesSketchToQuantiles",
 		Name: name,
-		Field: FieldRef{
+		Field: &FieldRef{
 			Type:      "fieldAccess",
 			FieldName: fieldName,
 		},
@@ -143,7 +143,7 @@ func ExtPostAggHistogram(name, fieldName string, splitPoints []float64) PostAggr
 	return PostAggregation{
 		Type: "quantilesDoublesSketchToHistogram",
 		Name: name,
-		Field: FieldRef{
+		Field: &FieldRef{
 			Type:      "fieldAccess",
 			FieldName: fieldName,
 		},
