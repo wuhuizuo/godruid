@@ -5,14 +5,23 @@ import (
 )
 
 type PostAggregation struct {
-	Type       string            `json:"type"`
-	Name       string            `json:"name,omitempty"`
-	Value      interface{}       `json:"value,omitempty"`
-	Fn         string            `json:"fn,omitempty"`
-	Fields     []PostAggregation `json:"fields,omitempty"`
-	FieldName  string            `json:"fieldName,omitempty"`
-	FieldNames []string          `json:"fieldNames,omitempty"`
-	Function   string            `json:"function,omitempty"`
+	Type        string            `json:"type"`
+	Name        string            `json:"name,omitempty"`
+	Value       interface{}       `json:"value,omitempty"`
+	Fn          string            `json:"fn,omitempty"`
+	Fields      []PostAggregation `json:"fields,omitempty"`
+	FieldName   string            `json:"fieldName,omitempty"`
+	FieldNames  []string          `json:"fieldNames,omitempty"`
+	Function    string            `json:"function,omitempty"`
+	Fraction    float64           `json:"fraction,omitempty"`    // druid-datasketches extension - quantiles
+	Fractions   []float64         `json:"fractions,omitempty"`   // druid-datasketches extension - quantiles
+	Field       FieldRef          `json:"field,omitempty"`       // druid-datasketches extension
+	SplitPoints []float64         `json:"splitPoints,omitempty"` // druid-datasketches extension - histogram
+}
+
+type FieldRef struct {
+	Type      string `json:"type"`
+	FieldName string `json:"fieldName,omitempty"`
 }
 
 // The agg reference.
@@ -91,5 +100,53 @@ func PostAggFieldHyperUnique(fieldName string) PostAggregation {
 	return PostAggregation{
 		Type:      "hyperUniqueCardinality",
 		FieldName: fieldName,
+	}
+}
+
+// druid-stats extension
+func ExtPostAggStdDev(name, fieldName string) PostAggregation {
+	return PostAggregation{
+		Type:      "stddev",
+		Name:      name,
+		FieldName: fieldName,
+	}
+}
+
+// druid-datasketchess extension
+func ExtPostAggQuantile(name, fieldName string, fraction float64) PostAggregation {
+	return PostAggregation{
+		Type: "quantilesDoublesSketchToQuantile",
+		Name: name,
+		Field: FieldRef{
+			Type:      "fieldAccess",
+			FieldName: fieldName,
+		},
+		Fraction: fraction,
+	}
+}
+
+// druid-datasketchess extension
+func ExtPostAggQuantiles(name, fieldName string, fractions []float64) PostAggregation {
+	return PostAggregation{
+		Type: "quantilesDoublesSketchToQuantiles",
+		Name: name,
+		Field: FieldRef{
+			Type:      "fieldAccess",
+			FieldName: fieldName,
+		},
+		Fractions: fractions,
+	}
+}
+
+// druid-datasketchess extension
+func ExtPostAggHistogram(name, fieldName string, splitPoints []float64) PostAggregation {
+	return PostAggregation{
+		Type: "quantilesDoublesSketchToHistogram",
+		Name: name,
+		Field: FieldRef{
+			Type:      "fieldAccess",
+			FieldName: fieldName,
+		},
+		SplitPoints: splitPoints,
 	}
 }

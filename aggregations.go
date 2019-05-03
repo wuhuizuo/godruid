@@ -20,6 +20,7 @@ type Aggregation struct {
 	UpperLimit  string       `json:"upperLimit,omitempty"`
 	Aggregator  *Aggregation `json:"aggregator,omitempty"`
 	Round       bool         `json:"round,omitempty"`
+	K           int32        `json:"k,omitempty"` // druid-datasketches extension
 }
 
 func AggRawJson(rawJson string) *Aggregation {
@@ -141,4 +142,29 @@ func AggCardinality(name string, fieldNames []string, byRow ...bool) Aggregation
 		FieldNames: fieldNames,
 		ByRow:      isByRow,
 	}
+}
+
+// druid-stats extension
+func ExtAggVariance(name, fieldName string) *Aggregation {
+	return &Aggregation{
+		Type:      "variance",
+		Name:      name,
+		FieldName: fieldName,
+	}
+}
+
+// druid-datasketches extension
+func ExtAggQuantile(name string, fieldName string, k int32) *Aggregation {
+
+	retAgg := Aggregation{
+		Type:      "quantilesDoublesSketch",
+		Name:      name,
+		FieldName: fieldName,
+	}
+
+	if k > 0 {
+		retAgg.K = k
+	}
+
+	return &retAgg
 }
