@@ -138,7 +138,9 @@ func (q *QueryGroupBy) canMerge(oq *QueryGroupBy) error {
 		return errors.New("TODO:now only support granularity `all`'s result merge")
 	}
 	if reflect.DeepEqual(q.Intervals, oq.Intervals) {
-		return errors.New("can not merge with same intervals")
+		if q.QueryResult != nil {
+			return errors.New("can not merge with same intervals")
+		}
 	}
 	if q.DataSource != oq.DataSource {
 		return errors.New("DataSource is not same")

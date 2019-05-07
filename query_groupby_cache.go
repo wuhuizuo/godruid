@@ -210,7 +210,9 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 				}
 			}
 		}
-		q.Merge(&newQ)
+		if err := q.Merge(&newQ); err != nil {
+			return err
+		}
 	}
 
 	return nil
