@@ -287,7 +287,12 @@ func postAggExp(pg PostAggregation) []string {
 	case "arithmetic":
 		ret := []string{pg.Fn}
 		for _, f := range pg.Fields {
-			ret = append(ret, f.FieldName)
+			switch {
+			case f.FieldName != "":
+				ret = append(ret, f.FieldName)
+			case f.Type == "constant" && f.Value != nil:
+				ret = append(ret, fmt.Sprintf("%v", f.Value))
+			}
 		}
 		return ret
 	default:
