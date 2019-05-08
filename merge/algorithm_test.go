@@ -188,6 +188,7 @@ func TestPostAggComputeArithmetic(t *testing.T) {
 
 		{"+_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, []string{"+", "a", "b"}}, float64(3)},
 		{"-_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, []string{"-", "a", "b"}}, float64(-1)},
+		{"-_float64-2", args{map[string]interface{}{"b": float64(0.2)}, []string{"-", "1", "b"}}, float64(0.8)},
 		{"*_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, []string{"*", "a", "b"}}, float64(2)},
 		{"/_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, []string{"/", "a", "b"}}, float64(0.5)},
 	}

@@ -1,6 +1,8 @@
 package merge
 
 import (
+	"strconv"
+	"regexp"
 	"fmt"
 	"reflect"
 )
@@ -246,7 +248,10 @@ func PostAggComputeArithmetic(data map[string]interface{}, arithmeticExp []strin
 	for _, vk := range arithmeticExp[1:] {
 		v, ok := data[vk]
 		if !ok {
-			panic(fmt.Sprintf("data has no key:%s", vk))
+			if !regexp.MustCompile(`[+-]?^\d+(\.[\d]*)?$`).Match([]byte(vk)) {
+				panic(fmt.Sprintf("data has no key:%s", vk))
+			}
+			v, _ = strconv.ParseFloat(vk, 64)
 		}
 		values = append(values, v)
 	}

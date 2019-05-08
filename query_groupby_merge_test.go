@@ -137,12 +137,17 @@ func Test_postAggExp(t *testing.T) {
 		PostAggFieldAccessor("aggLongSum"),
 		PostAggFieldAccessor("aggCount"),
 	})
+	pb := PostAggArithmetic("avg_xxx", "-", []PostAggregation{
+		PostAggConstant("const", 1),
+		PostAggFieldAccessor("aggLongSum"),
+	})
 	tests := []struct {
 		name string
 		pg   PostAggregation
 		want []string
 	}{
 		{"default", pa, []string{"/", "aggLongSum", "aggCount"}},
+		{"default", pb, []string{"-", "1", "aggLongSum"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
