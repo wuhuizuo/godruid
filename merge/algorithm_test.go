@@ -58,9 +58,8 @@ func TestMax(t *testing.T) {
 		vals []interface{}
 		want interface{}
 	}{
-		{"byte", []interface{}{byte(1), byte(2), byte(3)}, byte(3)},
-		{"int8", []interface{}{int8(1), int8(2), int8(3)}, int8(3)},
-		{"int16", []interface{}{int16(1), int16(2), int16(3)}, int16(3)},
+		{"int8", []interface{}{int8(1), int8(3), int8(2)}, int8(3)},
+		{"int16", []interface{}{int16(1), int16(3), int16(2)}, int16(3)},
 		{"int32", []interface{}{int32(1), int32(2), int32(3)}, int32(3)},
 		{"int", []interface{}{int(1), int(2), int(3)}, int(3)},
 		{"int64", []interface{}{int64(1), int64(2), int64(3)}, int64(3)},
@@ -129,9 +128,9 @@ func TestDivide(t *testing.T) {
 		vals []interface{}
 		want interface{}
 	}{
-		{"int8", []interface{}{int8(10), int8(2), int8(2)}, float64(2.5)},
-		{"int16", []interface{}{int16(10), int16(2), int16(2)}, float64(2.5)},
-		{"int32", []interface{}{int32(10), int32(2), int32(2)}, float64(2.5)},
+		{"int8", []interface{}{int8(10), int8(2), int8(2)}, float32(2.5)},
+		{"int16", []interface{}{int16(10), int16(2), int16(2)}, float32(2.5)},
+		{"int32", []interface{}{int32(10), int32(2), int32(2)}, float32(2.5)},
 		{"int", []interface{}{int(10), int(2), int(2)}, float64(2.5)},
 		{"int64", []interface{}{int64(10), int64(2), int64(2)}, float64(2.5)},
 		{"float32", []interface{}{float32(10), float32(2), float32(2)}, float32(2.5)},
@@ -140,7 +139,7 @@ func TestDivide(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Divide(tt.vals...); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Divide() = %v, want %v", got, tt.want)
+				t.Errorf("Divide() = %v(%T), want %v(%T)", got, got, tt.want, tt.want)
 			}
 		})
 	}
@@ -149,53 +148,56 @@ func TestDivide(t *testing.T) {
 func TestPostAggComputeArithmetic(t *testing.T) {
 	type args struct {
 		data          map[string]interface{}
-		arithmeticExp []string
+		arithmeticExp string
 	}
 	tests := []struct {
 		name string
 		args args
 		want interface{}
 	}{
-		{"+_int8", args{map[string]interface{}{"a": int8(1), "b": int8(2)}, []string{"+", "a", "b"}}, int8(3)},
-		{"-_int8", args{map[string]interface{}{"a": int8(1), "b": int8(2)}, []string{"-", "a", "b"}}, int8(-1)},
-		{"*_int8", args{map[string]interface{}{"a": int8(1), "b": int8(2)}, []string{"*", "a", "b"}}, int64(2)},
-		{"/_int8", args{map[string]interface{}{"a": int8(1), "b": int8(2)}, []string{"/", "a", "b"}}, float32(0.5)},
+		{"+_int8", args{map[string]interface{}{"a": int8(1), "b": int8(2)}, "a + b"}, float64(3)},
+		{"-_int8", args{map[string]interface{}{"a": int8(1), "b": int8(2)}, "a - b"}, float64(-1)},
+		{"*_int8", args{map[string]interface{}{"a": int8(1), "b": int8(2)}, "a * b"}, float64(2)},
+		{"/_int8", args{map[string]interface{}{"a": int8(1), "b": int8(2)}, "a / b"}, float64(0.5)},
 
-		{"+_int16", args{map[string]interface{}{"a": int16(1), "b": int16(2)}, []string{"+", "a", "b"}}, int16(3)},
-		{"-_int16", args{map[string]interface{}{"a": int16(1), "b": int16(2)}, []string{"-", "a", "b"}}, int16(-1)},
-		{"*_int16", args{map[string]interface{}{"a": int16(1), "b": int16(2)}, []string{"*", "a", "b"}}, int64(2)},
-		{"/_int16", args{map[string]interface{}{"a": int16(1), "b": int16(2)}, []string{"/", "a", "b"}}, float32(0.5)},
+		{"+_int16", args{map[string]interface{}{"a": int16(1), "b": int16(2)}, "a + b"}, float64(3)},
+		{"-_int16", args{map[string]interface{}{"a": int16(1), "b": int16(2)}, "a - b"}, float64(-1)},
+		{"*_int16", args{map[string]interface{}{"a": int16(1), "b": int16(2)}, "a * b"}, float64(2)},
+		{"/_int16", args{map[string]interface{}{"a": int16(1), "b": int16(2)}, "a / b"}, float64(0.5)},
 
-		{"+_int", args{map[string]interface{}{"a": 1, "b": 2}, []string{"+", "a", "b"}}, 3},
-		{"-_int", args{map[string]interface{}{"a": 1, "b": 2}, []string{"-", "a", "b"}}, -1},
-		{"*_int", args{map[string]interface{}{"a": 1, "b": 2}, []string{"*", "a", "b"}}, int64(2)},
-		{"/_int", args{map[string]interface{}{"a": 1, "b": 2}, []string{"/", "a", "b"}}, float64(0.5)},
+		{"+_int", args{map[string]interface{}{"a": 1, "b": 2}, "a + b"}, float64(3)},
+		{"-_int", args{map[string]interface{}{"a": 1, "b": 2}, "a - b"}, float64(-1)},
+		{"*_int", args{map[string]interface{}{"a": 1, "b": 2}, "a * b"}, float64(2)},
+		{"/_int", args{map[string]interface{}{"a": 1, "b": 2}, "a / b"}, float64(0.5)},
 
-		{"+_int32", args{map[string]interface{}{"a": int32(1), "b": int32(2)}, []string{"+", "a", "b"}}, int32(3)},
-		{"-_int32", args{map[string]interface{}{"a": int32(1), "b": int32(2)}, []string{"-", "a", "b"}}, int32(-1)},
-		{"*_int32", args{map[string]interface{}{"a": int32(1), "b": int32(2)}, []string{"*", "a", "b"}}, int64(2)},
-		{"/_int32", args{map[string]interface{}{"a": int32(1), "b": int32(2)}, []string{"/", "a", "b"}}, float32(0.5)},
+		{"+_int32", args{map[string]interface{}{"a": int32(1), "b": int32(2)}, "a + b"}, float64(3)},
+		{"-_int32", args{map[string]interface{}{"a": int32(1), "b": int32(2)}, "a - b"}, float64(-1)},
+		{"*_int32", args{map[string]interface{}{"a": int32(1), "b": int32(2)}, "a * b"}, float64(2)},
+		{"/_int32", args{map[string]interface{}{"a": int32(1), "b": int32(2)}, "a / b"}, float64(0.5)},
 
-		{"+_int64", args{map[string]interface{}{"a": int64(1), "b": int64(2)}, []string{"+", "a", "b"}}, int64(3)},
-		{"-_int64", args{map[string]interface{}{"a": int64(1), "b": int64(2)}, []string{"-", "a", "b"}}, int64(-1)},
-		{"*_int64", args{map[string]interface{}{"a": int64(1), "b": int64(2)}, []string{"*", "a", "b"}}, int64(2)},
-		{"/_int64", args{map[string]interface{}{"a": int64(1), "b": int64(2)}, []string{"/", "a", "b"}}, float64(0.5)},
+		{"+_int64", args{map[string]interface{}{"a": int64(1), "b": int64(2)}, "a + b"}, float64(3)},
+		{"-_int64", args{map[string]interface{}{"a": int64(1), "b": int64(2)}, "a - b"}, float64(-1)},
+		{"*_int64", args{map[string]interface{}{"a": int64(1), "b": int64(2)}, "a * b"}, float64(2)},
+		{"/_int64", args{map[string]interface{}{"a": int64(1), "b": int64(2)}, "a / b"}, float64(0.5)},
 
-		{"+_float32", args{map[string]interface{}{"a": float32(1), "b": float32(2)}, []string{"+", "a", "b"}}, float32(3)},
-		{"-_float32", args{map[string]interface{}{"a": float32(1), "b": float32(2)}, []string{"-", "a", "b"}}, float32(-1)},
-		{"*_float32", args{map[string]interface{}{"a": float32(1), "b": float32(2)}, []string{"*", "a", "b"}}, float64(2)},
-		{"/_float32", args{map[string]interface{}{"a": float32(1), "b": float32(2)}, []string{"/", "a", "b"}}, float32(0.5)},
+		{"+_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, "a + b"}, float64(3)},
+		{"-_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, "a - b"}, float64(-1)},
+		{"*_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, "a * b"}, float64(2)},
+		{"/_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, "a / b"}, float64(0.5)},
 
-		{"+_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, []string{"+", "a", "b"}}, float64(3)},
-		{"-_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, []string{"-", "a", "b"}}, float64(-1)},
-		{"-_float64-2", args{map[string]interface{}{"b": float64(0.2)}, []string{"-", "1", "b"}}, float64(0.8)},
-		{"*_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, []string{"*", "a", "b"}}, float64(2)},
-		{"/_float64", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, []string{"/", "a", "b"}}, float64(0.5)},
+		{"-_float64-2", args{map[string]interface{}{"a": float64(1), "b": float64(0.2)}, "1 - b"}, float64(0.8)},
+		{"-/_float64-2", args{map[string]interface{}{"a": float64(1), "b": float64(2)}, "1 - (a / b)"}, float64(0.5)},
+		// 1 - a / b
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := PostAggComputeArithmetic(tt.args.data, tt.args.arithmeticExp); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("PostAggComputeArithmetic() = %v, want %v", got, tt.want)
+			got, err := PostAggComputeArithmetic(tt.args.data, tt.args.arithmeticExp)
+			if err != nil {
+				t.Errorf("PostAggComputeArithmeticx() error = %v", err)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PostAggComputeArithmetic() = %v(%T), want %v(%T)", got, got, tt.want, tt.want)
 			}
 		})
 	}

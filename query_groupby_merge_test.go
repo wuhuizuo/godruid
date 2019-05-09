@@ -141,13 +141,18 @@ func Test_postAggExp(t *testing.T) {
 		PostAggConstant("const", 1),
 		PostAggFieldAccessor("aggLongSum"),
 	})
+	pc := PostAggArithmetic("avg_yyy", "-", []PostAggregation{
+		PostAggConstant("const", 1),
+		pa,
+	})
 	tests := []struct {
 		name string
 		pg   PostAggregation
-		want []string
+		want string
 	}{
-		{"default", pa, []string{"/", "aggLongSum", "aggCount"}},
-		{"default", pb, []string{"-", "1", "aggLongSum"}},
+		{"default", pa, "aggLongSum / aggCount"},
+		{"default", pb, "1 - aggLongSum"},
+		{"default", pc, "1 - (aggLongSum / aggCount)"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -228,23 +233,6 @@ func TestQueryGroupBy_postAggExps(t *testing.T) {
 	}
 }
 
-func TestQueryGroupBy_postAggExpStrings(t *testing.T) {
-	tests := []struct {
-		name string
-		q    *QueryGroupBy
-		want []string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.q.postAggExpStrings(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("QueryGroupBy.postAggExpStrings() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_mergeAgg(t *testing.T) {
 	type args struct {
 		aggType string
@@ -270,7 +258,7 @@ func Test_reComputePostAggs(t *testing.T) {
 	type args struct {
 		event        map[string]interface{}
 		postAggNames []string
-		postAggExps  [][]string
+		postAggExps  []string
 	}
 	tests := []struct {
 		name string
@@ -289,7 +277,7 @@ func Test_reComputePostAgg(t *testing.T) {
 	type args struct {
 		event       map[string]interface{}
 		postAggName string
-		postAggExp  []string
+		postAggExp  string
 	}
 	tests := []struct {
 		name string
