@@ -52,7 +52,7 @@ func minFloat64(vals ...interface{}) float64 {
 	ret = vals[0].(float64)
 	for _, v := range vals[1:] {
 		vv := v.(float64)
-		if ret < vv {
+		if ret > vv {
 			ret = vv
 		}
 	}
