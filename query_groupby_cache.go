@@ -123,7 +123,7 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 			AggNames:     aggNames,
 			PostAggNames: postAggNames,
 			AggTypes:     q.aggTypes(),
-			PostAggExps:  q.postAggExpStrings(),
+			PostAggExps:  q.postAggExps(),
 			GroupDimVals: groupDimVals,
 			AggVals:      aggVals,
 			PostAggVals:  postAggVals,
@@ -243,7 +243,7 @@ func (q *QueryGroupBy) conditionPostAggNames() Condition {
 }
 
 func (q *QueryGroupBy) conditionPostAggExps() Condition {
-	return Condition{FieldName: "postAggExps", Op: "=", Value: jsonStr(q.postAggExpStrings())}
+	return Condition{FieldName: "postAggExps", Op: "=", Value: jsonStr(q.postAggExps())}
 }
 
 // QueryGroupBy special query for GroupBy type query

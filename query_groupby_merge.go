@@ -196,18 +196,10 @@ func (q *QueryGroupBy) aggTypes() []string {
 	return ret
 }
 
-func (q *QueryGroupBy) postAggExps() [][]string {
-	ret := [][]string{}
+func (q *QueryGroupBy) postAggExps() []string {
+	ret := []string{}
 	for _, pa := range q.PostAggregations {
 		ret = append(ret, postAggExp(pa))
-	}
-	return ret
-}
-
-func (q *QueryGroupBy) postAggExpStrings() []string {
-	var ret []string
-	for _, exp := range q.postAggExps() {
-		ret = append(ret, fmt.Sprintf("%s:%s", exp[0], strings.Join(exp[1:], ",")))
 	}
 	return ret
 }
@@ -235,14 +227,14 @@ func mergeAgg(aggType string, aggVals ...interface{}) interface{} {
 	return nil
 }
 
-func reComputePostAggs(event map[string]interface{}, postAggNames []string, postAggExps [][]string) {
+func reComputePostAggs(event map[string]interface{}, postAggNames []string, postAggExps []string) {
 	for i, postAggName := range postAggNames {
 		reComputePostAgg(event, postAggName, postAggExps[i])
 	}
 }
 
-func reComputePostAgg(event map[string]interface{}, postAggName string, postAggExp []string) {
-	if v := merge.PostAggComputeArithmetic(event, postAggExp); v != nil {
+func reComputePostAgg(event map[string]interface{}, postAggName string, postAggExp string) {
+	if v, err := merge.PostAggComputeArithmetic(event, postAggExp); err == nil && v != nil {
 		event[postAggName] = v
 	}
 }
@@ -282,19 +274,44 @@ func aggType(agg Aggregation) string {
 	return agg.Type
 }
 
-func postAggExp(pg PostAggregation) []string {
+func postAggExp(pg PostAggregation) string {
 	switch pg.Type {
+	case "fieldAccess":
+		return pg.FieldName
+	case "constant":
+		return fmt.Sprintf("%v", pg.Value)
 	case "arithmetic":
-		ret := []string{pg.Fn}
-		for _, f := range pg.Fields {
-			switch {
-			case f.FieldName != "":
-				ret = append(ret, f.FieldName)
-			case f.Type == "constant" && f.Value != nil:
-				ret = append(ret, fmt.Sprintf("%v", f.Value))
+		ret := []string{}
+		fn := pg.Fn
+		// 单目操作符
+		fieldsLen  := len(pg.Fields)
+		switch fieldsLen {
+		case 1, 2:
+			var expPg0 string
+			cPg0 := pg.Fields[0]
+			expPg0 = postAggExp(cPg0)
+			if cPg0.Type == "arithmetic" {
+				expPg0 = "(" + expPg0 + ")"
 			}
+			if fieldsLen == 2 {
+				var expPg1 string
+				cPg1 := pg.Fields[1]
+				expPg1 = postAggExp(cPg1)
+				if cPg1.Type == "arithmetic" {
+					expPg1 = "(" + expPg1 + ")"
+				}
+				ret = append(ret, expPg0)
+				ret = append(ret, fn)
+				ret = append(ret, expPg1)
+			} else {
+				ret = append(ret, fn)
+				ret = append(ret, expPg0)
+			}
+		default:
+			panic(fmt.Sprintf("not support more than 2 args for arithmetic: %s", pg.Fn))
 		}
-		return ret
+
+		return strings.Join(ret, " ")
 	default:
 		panic("not support PostAggregation type")
 	}

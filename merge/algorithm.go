@@ -1,10 +1,9 @@
 package merge
 
 import (
-	"strconv"
-	"regexp"
 	"fmt"
 	"reflect"
+	govaluate "github.com/wuhuizuo/govaluate"
 )
 
 // Sum get sum from values
@@ -238,34 +237,11 @@ func Max(vals ...interface{}) interface{} {
 }
 
 // PostAggComputeArithmetic post agg 算法
-func PostAggComputeArithmetic(data map[string]interface{}, arithmeticExp []string) interface{} {
-	if len(arithmeticExp) < 2 {
-		panic("postAggExp参数不合法")
+func PostAggComputeArithmetic(data map[string]interface{}, arithmeticExp string) (interface{}, error) {
+	fmt.Println(arithmeticExp)
+	exp, err := govaluate.NewEvaluableExpression(arithmeticExp)
+	if err != nil {
+		return nil , err
 	}
-
-	fn := arithmeticExp[0]
-	values := []interface{}{}
-	for _, vk := range arithmeticExp[1:] {
-		v, ok := data[vk]
-		if !ok {
-			if !regexp.MustCompile(`[+-]?^\d+(\.[\d]*)?$`).Match([]byte(vk)) {
-				panic(fmt.Sprintf("data has no key:%s", vk))
-			}
-			v, _ = strconv.ParseFloat(vk, 64)
-		}
-		values = append(values, v)
-	}
-
-	switch fn {
-	case "+":
-		return Add(values...)
-	case "-":
-		return Sub(values...)
-	case "*":
-		return Multiply(values...)
-	case "/":
-		return Divide(values...)
-	default:
-		panic(fmt.Sprintf("not support post agg arithmetic:%s", fn))
-	}
+	return exp.Evaluate(data)
 }
