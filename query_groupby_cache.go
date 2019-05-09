@@ -108,7 +108,11 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 		postAggVals := []interface{}{}
 		for _, k := range groupDims {
 			v, _ := item.Event[k]
-			groupDimVals = append(groupDimVals, v.(string))
+			if v == nil {
+				groupDimVals = append(groupDimVals, "")
+			} else {
+				groupDimVals = append(groupDimVals, v.(string))
+			}
 		}
 		for _, k := range aggNames {
 			aggVals = append(aggVals, item.Event[k])
