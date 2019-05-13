@@ -112,12 +112,12 @@ func (q *QueryGroupBy) mergeQueryResult(oResult []GroupbyItem) {
 		}
 	}
 	if iR < resultLen {
-		for _, item := range q.QueryResult[iR : resultLen-1] {
+		for _, item := range q.QueryResult[iR:resultLen] {
 			newResult = append(newResult, item)
 		}
 	}
 	if iO < oResultLen {
-		for _, item := range oResult[iO : oResultLen-1] {
+		for _, item := range oResult[iO:oResultLen] {
 			newResult = append(newResult, item)
 		}
 	}
