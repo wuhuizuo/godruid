@@ -10,9 +10,12 @@ import (
 	"time"
 )
 
-const (
-	DefaultEndPoint = "/druid/v2"
-)
+// DefaultEndPoint druid api path's end point
+const DefaultEndPoint = "/druid/v2"
+
+// CacheThresholdLower the lower threshold for result bytes length
+const CacheThresholdLower = 3
+
 
 // Condition cache query condition
 // * copy from https://git.code.oa.com/flarezuo/miglib/blob/master/dcache/jce/DCache/Condition.go
@@ -131,12 +134,14 @@ func (c *Client) Query(query Query) (err error) {
 		qKey := dataKey(reqJson)
 		var cached bool
 		result, cached = c.ResultCache.Get(qKey)
-		if !cached {
+		if !cached || len(result) < CacheThresholdLower {
 			result, err = c.QueryRaw(reqJson)
 			if err != nil {
 				return
 			}
-			c.ResultCache.Set(qKey, result, 0)
+			if len(result) >= CacheThresholdLower {
+				c.ResultCache.Set(qKey, result, 0)
+			}
 		}
 	} else {
 		result, err = c.QueryRaw(reqJson)
