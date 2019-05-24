@@ -181,7 +181,9 @@ func (c *Client) QueryRaw(req []byte) (result []byte, err error) {
 
 	resp, err := c.HttpClient.Do(request)
 	defer func() {
-		resp.Body.Close()
+		if resp != nil {
+			resp.Body.Close()
+		}
 	}()
 
 	if err != nil {
