@@ -61,6 +61,31 @@ type GroupByCacheAdapter interface {
 	Clean(target string) error
 }
 
+// LoggerInterface logger interface
+type LoggerInterface interface {
+	Info(v ...interface{})
+	Debug(v ...interface{})
+	Warn(v ...interface{})
+	Error(v ...interface{})
+	Infof(format string, v ...interface{})
+	Debugf(format string, v ...interface{})
+	Errorf(format string, v ...interface{})
+	Warnf(format string, v ...interface{})
+}
+
+type EmptyLogger struct {
+
+}
+
+func (l *EmptyLogger)Info(v ...interface{}) {}
+func (l *EmptyLogger)Debug(v ...interface{}) {}
+func (l *EmptyLogger)Warn(v ...interface{}) {}
+func (l *EmptyLogger)Error(v ...interface{}) {}
+func (l *EmptyLogger)Infof(format string, v ...interface{}) {}
+func (l *EmptyLogger)Debugf(format string, v ...interface{}) {}
+func (l *EmptyLogger)Errorf(format string, v ...interface{}) {}
+func (l *EmptyLogger)Warnf(format string, v ...interface{}) {}
+
 type Client struct {
 	Url          string
 	EndPoint     string
@@ -70,6 +95,7 @@ type Client struct {
 	LastRequest  string
 	LastResponse string
 	HttpClient   *http.Client
+	Logger 		 LoggerInterface
 	ResultCache  CacheAdapter
 	GroupByCache GroupByCacheAdapter
 }
@@ -131,15 +157,18 @@ func (c *Client) Query(query Query) (err error) {
 	var result []byte
 	needCache := (c.ResultCache != nil && query.shouldCache())
 	if needCache {
+		c.logger().Debugf("[%s] quering from cache...", "Client.Query")
 		qKey := dataKey(reqJson)
 		var cached bool
 		result, cached = c.ResultCache.Get(qKey)
+		c.logger().Debugf("[%s] is cache hit:%v", "Client.Query", cached)
 		if !cached || len(result) < CacheThresholdLower {
 			result, err = c.QueryRaw(reqJson)
 			if err != nil {
 				return
 			}
 			if len(result) >= CacheThresholdLower {
+				c.logger().Debugf("[%s] save query result to cache with key:%s", "Client.Query", qKey)
 				c.ResultCache.Set(qKey, result, 0)
 			}
 		}
@@ -153,7 +182,20 @@ func (c *Client) Query(query Query) (err error) {
 	return query.onResponse(result)
 }
 
+func (c *Client) logger() LoggerInterface {
+	if c.Logger == nil {
+		c.Logger = &EmptyLogger{}
+	}
+	return c.Logger
+}
+
+// QueryRaw raw query method
 func (c *Client) QueryRaw(req []byte) (result []byte, err error) {
+	c.logger().Debugf("[%s] starting raw query...", "Client.QueryRaw")
+	if c.HttpClient == nil {
+		err = fmt.Errorf("can not query when http client is nil")
+		return
+	}
 	if c.EndPoint == "" {
 		c.EndPoint = DefaultEndPoint
 	}

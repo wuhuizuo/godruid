@@ -197,6 +197,7 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 			setDataSource(&newQ, c.DataSource)
 			newQ.LoadQueryResultFromMaps(ret)
 		} else {
+			c.logger().Debugf("[%s] no entries cached by index:%v", "QueryGroupBy.CacheQuery", target)
 			err := c.Query(&newQ)
 			if err != nil {
 				return err
@@ -207,6 +208,7 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 				for _, row := range rows {
 					entries = append(entries, row.ToCacheRow())
 				}
+				c.logger().Debugf("[%s] save query result to cache by index:%v, count:%d", "QueryGroupBy.CacheQuery", target, len(entries))
 				err := c.GroupByCache.InsertBatch(target, entries, 0)
 
 				if err != nil {
@@ -252,9 +254,12 @@ func (q *QueryGroupBy) conditionPostAggExps() Condition {
 
 // QueryGroupBy special query for GroupBy type query
 func (c *Client) QueryGroupBy(query *QueryGroupBy, cacheIndex string, writeback bool) error {
+	c.logger().Debugf("[%s] starting query for `groupBy` query...", "Client.QueryGroupBy")
 	if c.GroupByCache == nil || cacheIndex == "" {
+		c.logger().Debugf("[%s] no GroupByCache or cacheIndex given", "Client.QueryGroupBy")
 		return c.Query(query)
 	}
+	c.logger().Debugf("[%s] try quering from cache by index:%v", "Client.QueryGroupBy", cacheIndex)
 	return query.CacheQuery(c, cacheIndex, writeback)
 }
 
