@@ -1,5 +1,9 @@
 package godruid
 
+import (
+	"fmt"
+)
+
 type Filter struct {
 	Type         string        `json:"type"`
 	Dimension    string        `json:"dimension,omitempty"`
@@ -15,6 +19,69 @@ type Filter struct {
 	UpperStrict  bool          `json:"upperStrict,omitempty"`
 	LowerStrict  bool          `json:"lowerStrict,omitempty"`
 	ExtractionFn *ExtractionFn `json:"extractionFn,omitempty"`
+}
+
+// ToConditions translate to Conditions for db query
+func (f Filter) ToConditions() ([]Condition, error) {
+	var result []Condition
+	switch f.Type {
+	case "selector":
+		result = append(result, Condition{FieldName: f.Dimension, Op: "==", Value: f.Value})
+	case "not":
+		mirrorConditions, err := f.Field.ToConditions()
+		if err != nil {
+			return result, err
+		}
+		if len(mirrorConditions) > 1 {
+			return result, fmt.Errorf("can not parse when using not logic whth complex filter(translated condition's length > 1)")
+		}
+		condition := mirrorConditions[0]
+		reverseMap := map[string]string{
+			"=":  "!=",
+			"==": "!=",
+			">":  "<=",
+			">=": "<",
+			"<":  ">=",
+			"<=": ">",
+			"!=": "==",
+		}
+		reverseOp, ok := reverseMap[condition.Op]
+		if !ok {
+			return result, fmt.Errorf("can not reverse for Op:%s", condition.Op)
+		}
+		condition.Op = reverseOp
+		result = append(result, condition)
+	case "and":
+		for _, subF := range f.Fields {
+			subCondtions, err := subF.ToConditions()
+			if err != nil {
+				return result, err
+			}
+			for _, c := range subCondtions {
+				result = append(result, c)
+			}
+		}
+	case "bound":
+		if f.Lower != "" {
+			condition := Condition{FieldName: f.Dimension, Value: f.Lower, Op: ">="}
+			if f.LowerStrict {
+				condition.Op = ">"
+			}
+			result = append(result, condition)
+		}
+		if f.Upper != "" {
+			condition := Condition{FieldName: f.Dimension, Value: f.Upper, Op: "<="}
+			if f.UpperStrict {
+				condition.Op = "<"
+			}
+			result = append(result, condition)
+		}
+	default:
+		return result, fmt.Errorf("not support filter type: %s", f.Type)
+
+	}
+
+	return result, nil
 }
 
 type Ordering string
