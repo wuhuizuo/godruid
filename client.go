@@ -20,9 +20,9 @@ const CacheThresholdLower = 3
 // Condition cache query condition
 // * copy from https://git.code.oa.com/flarezuo/miglib/blob/master/dcache/jce/DCache/Condition.go
 type Condition struct {
-	FieldName string `json:"fieldName"`
-	Op        string `json:"op"`
-	Value     string `json:"value"`
+	FieldName string 		`json:"fieldName"`
+	Op        string 		`json:"op"`
+	Value     interface{}   `json:"value"`
 }
 
 type CacheSelectQuery struct {
@@ -73,8 +73,9 @@ type LoggerInterface interface {
 	Warnf(format string, v ...interface{})
 }
 
+// EmptyLogger no log ops logger
 type EmptyLogger struct {
-
+	// nothing
 }
 
 func (l *EmptyLogger)Info(v ...interface{}) {}
