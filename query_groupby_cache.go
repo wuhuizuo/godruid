@@ -10,12 +10,12 @@ import (
 
 // PersistenceRow  for persistence StaticTable's row
 type PersistenceRow struct {
-	TimePos      int64         `json:"timePos"`      // UKey, example: 15555555555555
-	TimeLen      int64         `json:"timeLen"`      // UKey, example: 3600(hour)
-	GroupDims    []string      `json:"groupDims"`    // UKey, example: OS,AppVersion,AppBuildNum
-	AggNames     []string      `json:"aggNames"`     // UKey, example: total_file_size, total_time_cost
-	PostAggNames []string      `json:"postAggNames"` // UKey, example: avg_speed, avg_file_size
-	GroupDimVals []string      `json:"groupDimVals"` // Value, json array
+	TimePos      int64         `json:"timePos"`      // Primary Key, example: 15555555555555
+	TimeLen      int64         `json:"timeLen"`      // Primary Key, example: 3600(hour)
+	GroupDims    []string      `json:"groupDims"`    // Primary Key, example: OS,AppVersion,AppBuildNum
+	AggNames     []string      `json:"aggNames"`     // Primary Key, example: total_file_size, total_time_cost
+	PostAggNames []string      `json:"postAggNames"` // Primary Key, example: avg_speed, avg_file_size
+	GroupDimVals []string      `json:"groupDimVals"` // Primary Key, json array
 	AggTypes     []string      `json:"aggTypes"`     // Value, json array
 	PostAggExps  []string      `json:"postAggExps"`  // Value, json map
 	AggVals      []interface{} `json:"aggVals"`      // Value, json map
