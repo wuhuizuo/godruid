@@ -59,6 +59,7 @@ type QueryGroupBy struct {
 	Aggregations     []Aggregation          `json:"aggregations"`
 	PostAggregations []PostAggregation      `json:"postAggregations,omitempty"`
 	Intervals        Intervals              `json:"intervals"`
+	SubtotalsSpec    [][]string             `json:"subtotalsSpec,omitempty"`
 	Context          map[string]interface{} `json:"context,omitempty"`
 	VirtualColumns   []VirtualColumn        `json:"virtualColumns,omitempty"`
 	QueryResult      []GroupbyItem          `json:"-"`
@@ -116,6 +117,11 @@ func (q *QueryGroupBy) AddAggregation(agg Aggregation)          { q.Aggregations
 func (q *QueryGroupBy) ListPostAggregations() []PostAggregation { return q.PostAggregations }
 func (q *QueryGroupBy) AddPostAggregation(postAgg PostAggregation) {
 	q.PostAggregations = append(q.PostAggregations, postAgg)
+}
+
+// AddSubtotalsSpec add SubtotalsSpec
+func (q *QueryGroupBy) AddSubtotalsSpec(subTotoalGroupKeys []string) {
+	q.SubtotalsSpec = append(q.SubtotalsSpec, subTotoalGroupKeys)
 }
 
 // ---------------------------------
