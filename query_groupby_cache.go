@@ -10,60 +10,16 @@ import (
 
 // PersistenceRow  for persistence StaticTable's row
 type PersistenceRow struct {
-	TimePos      int64         `json:"timePos"`      // UKey, example: 15555555555555
-	TimeLen      int64         `json:"timeLen"`      // UKey, example: 3600(hour)
-	GroupDims    []string      `json:"groupDims"`    // UKey, example: OS,AppVersion,AppBuildNum
-	AggNames     []string      `json:"aggNames"`     // UKey, example: total_file_size, total_time_cost
-	PostAggNames []string      `json:"postAggNames"` // UKey, example: avg_speed, avg_file_size
-	GroupDimVals []string      `json:"groupDimVals"` // Value, json array
+	TimePos      int64         `json:"timePos"`      // Primary Key, example: 15555555555555
+	TimeLen      int64         `json:"timeLen"`      // Primary Key, example: 3600(hour)
+	GroupDims    []string      `json:"groupDims"`    // Primary Key, example: OS,AppVersion,AppBuildNum
+	AggNames     []string      `json:"aggNames"`     // Primary Key, example: total_file_size, total_time_cost
+	PostAggNames []string      `json:"postAggNames"` // Primary Key, example: avg_speed, avg_file_size
+	GroupDimVals []string      `json:"groupDimVals"` // Primary Key, json array
 	AggTypes     []string      `json:"aggTypes"`     // Value, json array
 	PostAggExps  []string      `json:"postAggExps"`  // Value, json map
 	AggVals      []interface{} `json:"aggVals"`      // Value, json map
 	PostAggVals  []interface{} `json:"postAggVals"`  // Value, json map
-}
-
-// ParseFrom string-string key-value pairs
-func (r *PersistenceRow) ParseFrom(row map[string]string) error {
-	newRow := map[string]interface{}{}
-	for k, v := range row {
-		switch k {
-		case "timePos", "timeLen":
-			iv, err := strconv.Atoi(v)
-			if err != nil {
-				return fmt.Errorf("`%s` is not number format(%#v)", k, v)
-			}
-			newRow[k] = iv
-		case "groupDims", "aggNames", "postAggNames", "groupDimVals", "aggTypes", "postAggExps":
-			arrVals := []string{}
-			json.Unmarshal([]byte(v), &arrVals)
-			newRow[k] = arrVals
-		case "aggVals", "postAggVals":
-			arrVals := []interface{}{}
-			json.Unmarshal([]byte(v), &arrVals)
-			newRow[k] = arrVals
-		default:
-			newRow[k] = v
-		}
-	}
-
-	retBytes, _ := json.Marshal(newRow)
-	return json.Unmarshal(retBytes, r)
-}
-
-// ToCacheRow convert to map[string]string
-func (r *PersistenceRow) ToCacheRow() map[string]string {
-	row := map[string]string{}
-	row["timePos"] = fmt.Sprintf("%d", r.TimePos)
-	row["timeLen"] = fmt.Sprintf("%d", r.TimeLen)
-	bs1, _ := json.Marshal(r.GroupDims   );row["groupDims"] 	= string(bs1)
-	bs2, _ := json.Marshal(r.AggNames    );row["aggNames"] 		= string(bs2)
-	bs3, _ := json.Marshal(r.PostAggNames);row["postAggNames"] 	= string(bs3)
-	bs4, _ := json.Marshal(r.GroupDimVals);row["groupDimVals"] 	= string(bs4)
-	bs5, _ := json.Marshal(r.AggTypes    );row["aggTypes"] 		= string(bs5)
-	bs6, _ := json.Marshal(r.PostAggExps );row["postAggExps"] 	= string(bs6)
-	bs7, _ := json.Marshal(r.AggVals     );row["aggVals"] 		= string(bs7)
-	bs8, _ := json.Marshal(r.PostAggVals );row["postAggVals"] 	= string(bs8)
-	return row
 }
 
 // DistributeQuery split intervals to whole days and hours
@@ -137,19 +93,8 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 	return ret, nil
 }
 
-// LoadQueryResultFromMaps Load Query Result From Cache maps
-func (q *QueryGroupBy) LoadQueryResultFromMaps(maps []map[string]string) error {
-	persistenceRows := []PersistenceRow{}
-	for _, m := range maps {
-		row  := PersistenceRow{}
-		row.ParseFrom(m)
-		persistenceRows = append(persistenceRows, row)
-	}
-	return q.LoadQueryResultFromPersistenceRows(persistenceRows)
-}
-
-// LoadQueryResultFromPersistenceRows Load Query Result From Persistence Rows
-func (q *QueryGroupBy) LoadQueryResultFromPersistenceRows(pRows []PersistenceRow) error {
+// LoadQueryResult Load Query Result From Cache maps
+func (q *QueryGroupBy) LoadQueryResult(pRows []PersistenceRow) error {
 	q.QueryResult = []GroupbyItem{}
 	for _, row := range pRows {
 		// TODO: 暂时不管row中的 TimePos及 TimeLen, GroupDims，AggNames，PostAggNames 后续完善时是需要校验的
@@ -166,6 +111,7 @@ func (q *QueryGroupBy) LoadQueryResultFromPersistenceRows(pRows []PersistenceRow
 		q.QueryResult = append(q.QueryResult, GroupbyItem{Event: event})
 	}
 	return nil
+
 }
 
 // CacheQuery query with attached cached
@@ -195,7 +141,7 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 		if len(ret) > 0 {
 			newQ.setup()
 			setDataSource(&newQ, c.DataSource)
-			newQ.LoadQueryResultFromMaps(ret)
+			newQ.LoadQueryResult(ret)
 		} else {
 			c.logger().Debugf("[%s] no entries cached by index:%v", "QueryGroupBy.CacheQuery", target)
 			err := c.Query(&newQ)
@@ -204,12 +150,8 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 			}
 			if writeback {
 				rows, _ := newQ.PersistenceRows()
-				entries := []map[string]string{}
-				for _, row := range rows {
-					entries = append(entries, row.ToCacheRow())
-				}
-				c.logger().Debugf("[%s] save query result to cache by index:%v, count:%d", "QueryGroupBy.CacheQuery", target, len(entries))
-				err := c.GroupByCache.InsertBatch(target, entries, 0)
+				c.logger().Debugf("[%s] save query result to cache by index:%v, count:%d", "QueryGroupBy.CacheQuery", target, len(rows))
+				err := c.GroupByCache.InsertBatch(target, rows, 0)
 
 				if err != nil {
 					return err

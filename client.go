@@ -46,13 +46,13 @@ type CacheAdapter interface {
 // GroupByCacheAdapter interface for druid group query result cache middleware client.
 type GroupByCacheAdapter interface {
 	// Select entries from cache
-	Select(query CacheSelectQuery) []map[string]string
+	Select(query CacheSelectQuery) []PersistenceRow
 
 	// Insert entry into cache
-	Insert(target string, entry map[string]string, lifespan time.Duration) error
+	Insert(target string, entry PersistenceRow, lifespan time.Duration) error
 
 	// InsertBatch batch insert entries into cache
-	InsertBatch(target string, entries []map[string]string, lifespan time.Duration) error
+	InsertBatch(target string, entries []PersistenceRow, lifespan time.Duration) error
 
 	// delete entries from cache filter by conditions
 	Delete(query CacheSelectQuery) error
