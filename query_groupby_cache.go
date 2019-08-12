@@ -20,6 +20,7 @@ type PersistenceRow struct {
 	PostAggExps  []string      `json:"postAggExps"`  // Value, json map
 	AggVals      []interface{} `json:"aggVals"`      // Value, json map
 	PostAggVals  []interface{} `json:"postAggVals"`  // Value, json map
+	FilterMD5    string 	   `json:"filterMD5"`
 }
 
 // DistributeQuery split intervals to whole days and hours
@@ -57,6 +58,11 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 	groupDims := q.DimNames()
 	aggNames := q.AggNames()
 	postAggNames := q.PostAggNames()
+	var filterMD5 string
+	if q.Filter != nil {
+		bs, _ := json.Marshal(q.Filter)
+		filterMD5 = dataKey(bs)
+	}
 
 	for _, item := range q.QueryResult {
 		groupDimVals := []string{}
@@ -87,6 +93,7 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 			GroupDimVals: groupDimVals,
 			AggVals:      aggVals,
 			PostAggVals:  postAggVals,
+			FilterMD5: 	  filterMD5,
 		})
 	}
 
@@ -95,7 +102,7 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 
 // LoadQueryResult Load Query Result From Cache maps
 func (q *QueryGroupBy) LoadQueryResult(pRows []PersistenceRow) error {
-	q.QueryResult = []GroupbyItem{}
+	var queryResult []GroupbyItem
 	for _, row := range pRows {
 		// TODO: 暂时不管row中的 TimePos及 TimeLen, GroupDims，AggNames，PostAggNames 后续完善时是需要校验的
 		event := map[string]interface{}{}
@@ -108,10 +115,10 @@ func (q *QueryGroupBy) LoadQueryResult(pRows []PersistenceRow) error {
 		for i, k := range row.PostAggNames {
 			event[k] = row.PostAggVals[i]
 		}
-		q.QueryResult = append(q.QueryResult, GroupbyItem{Event: event})
+		queryResult = append(q.QueryResult, GroupbyItem{Event: event})
 	}
+	q.QueryResult = queryResult
 	return nil
-
 }
 
 // CacheQuery query with attached cached
@@ -126,13 +133,15 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 	c3 := q.conditionGroupDims()
 	c4 := q.conditionAggNames()
 	c5 := q.conditionPostAggNames()
+	c6 := q.conditionFilterMD5()
+
 	intervalSlots, err := q.DistributeIntervalSlots()
 	if err != nil {
 		return err
 	}
 
 	for _, i := range intervalSlots {
-		selectConditions := []Condition{q.conditionTimePos(i.TimePos), q.conditionTimeLen(i.TimeLen), c3, c4, c5}
+		selectConditions := []Condition{q.conditionTimePos(i.TimePos), q.conditionTimeLen(i.TimeLen), c3, c4, c5, c6}
 		cacheSelectQuery := CacheSelectQuery{Target: target, Conditions: selectConditions}
 		newQ := *q
 		newQ.Intervals = []string{i.ToInterval()}
@@ -192,6 +201,15 @@ func (q *QueryGroupBy) conditionPostAggNames() Condition {
 
 func (q *QueryGroupBy) conditionPostAggExps() Condition {
 	return Condition{FieldName: "postAggExps", Op: "=", Value: jsonStr(q.postAggExps())}
+}
+
+func (q *QueryGroupBy) conditionFilterMD5() Condition {
+	var filterMD5 string
+	if q.Filter != nil {
+		bs, _ := json.Marshal(q.Filter)
+		filterMD5 = dataKey(bs)
+	}
+	return Condition{FieldName: "filterMD5", Op: "=", Value: filterMD5}
 }
 
 // QueryGroupBy special query for GroupBy type query
