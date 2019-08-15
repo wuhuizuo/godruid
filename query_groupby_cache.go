@@ -115,7 +115,7 @@ func (q *QueryGroupBy) LoadQueryResult(pRows []PersistenceRow) error {
 		for i, k := range row.PostAggNames {
 			event[k] = row.PostAggVals[i]
 		}
-		queryResult = append(q.QueryResult, GroupbyItem{Event: event})
+		queryResult = append(queryResult, GroupbyItem{Event: event})
 	}
 	q.QueryResult = queryResult
 	return nil
