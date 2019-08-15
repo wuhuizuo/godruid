@@ -214,12 +214,11 @@ func (q *QuerySegmentMetadata) onResponse(content []byte) error {
 // ---------------------------------
 
 type QueryTimeBoundary struct {
-	QueryType  QueryType              `json:"queryType"`
-	DataSource string                 `json:"dataSource"`
-	Bound      string                 `json:"bound,omitempty"`
-	Context    map[string]interface{} `json:"context,omitempty"`
-
-	QueryResult []TimeBoundaryItem `json:"-"`
+	QueryType   QueryType              `json:"queryType"`
+	DataSource  string                 `json:"dataSource"`
+	Bound       string                 `json:"bound,omitempty"`
+	Context     map[string]interface{} `json:"context,omitempty"`
+	QueryResult []TimeBoundaryItem     `json:"-"`
 	RawJSON     []byte
 }
 
