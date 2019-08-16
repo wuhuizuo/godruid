@@ -13,8 +13,8 @@ type Filter struct {
 	Function     string        `json:"function,omitempty"`
 	Field        *Filter       `json:"field,omitempty"`
 	Fields       []*Filter     `json:"fields,omitempty"`
-	Upper        string        `json:"upper,omitempty"`
-	Lower        string        `json:"lower,omitempty"`
+	Upper        *float64      `json:"upper,omitempty"`
+	Lower        *float64      `json:"lower,omitempty"`
 	Ordering     Ordering      `json:"ordering,omitempty"`
 	UpperStrict  bool          `json:"upperStrict,omitempty"`
 	LowerStrict  bool          `json:"lowerStrict,omitempty"`
@@ -62,14 +62,14 @@ func (f Filter) ToConditions() ([]Condition, error) {
 			}
 		}
 	case "bound":
-		if f.Lower != "" {
+		if f.Lower != nil {
 			condition := Condition{FieldName: f.Dimension, Value: f.Lower, Op: ">="}
 			if f.LowerStrict {
 				condition.Op = ">"
 			}
 			result = append(result, condition)
 		}
-		if f.Upper != "" {
+		if f.Upper != nil {
 			condition := Condition{FieldName: f.Dimension, Value: f.Upper, Op: "<="}
 			if f.UpperStrict {
 				condition.Op = "<"
@@ -109,34 +109,34 @@ func FilterSelector(dimension string, value interface{}) *Filter {
 	}
 }
 
-func FilterUpperBound(dimension string, ordering Ordering, bound string, strict bool) *Filter {
+func FilterUpperBound(dimension string, ordering Ordering, bound float64, strict bool) *Filter {
 	return &Filter{
 		Type:        "bound",
 		Dimension:   dimension,
 		Ordering:    ordering,
-		Upper:       bound,
+		Upper:       &bound,
 		UpperStrict: strict,
 	}
 }
 
-func FilterLowerBound(dimension string, ordering Ordering, bound string, strict bool) *Filter {
+func FilterLowerBound(dimension string, ordering Ordering, bound float64, strict bool) *Filter {
 	return &Filter{
 		Type:        "bound",
 		Dimension:   dimension,
 		Ordering:    ordering,
-		Lower:       bound,
+		Lower:       &bound,
 		LowerStrict: strict,
 	}
 }
 
-func FilterLowerUpperBound(dimension string, ordering Ordering, lowerBound string, lowerStrict bool, upperBound string, upperStrict bool) *Filter {
+func FilterLowerUpperBound(dimension string, ordering Ordering, lowerBound float64, lowerStrict bool, upperBound float64, upperStrict bool) *Filter {
 	return &Filter{
 		Type:        "bound",
 		Dimension:   dimension,
 		Ordering:    ordering,
-		Lower:       lowerBound,
+		Lower:       &lowerBound,
 		LowerStrict: lowerStrict,
-		Upper:       upperBound,
+		Upper:       &upperBound,
 		UpperStrict: upperStrict,
 	}
 }
