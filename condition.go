@@ -29,66 +29,31 @@ type Condition struct {
 
 // Match data?
 func (c *Condition) Match(data interface{}) bool {
-	if reflect.TypeOf(c.Value) != reflect.TypeOf(data) {
-		return false
-	}
-	switch c.Op {
-	case ConditionOpEql, ConditionOpEql2:
-		return reflect.DeepEqual(c.Value, data)
-	case ConditionOpNotEql:
-		return !reflect.DeepEqual(c.Value, data)
-	default:
-		v := reflect.ValueOf(c.Value)
-		d := reflect.ValueOf(data)
-		switch c.Value.(type) {
-		case int, int8, int16, int32, int64:
-			return c.matchInt64(v.Int(), d.Int())
-		case uint, uint8, uint16, uint32, uint64:
-			return c.matchUint64(v.Uint(), d.Uint())
-		case float32, float64:
-			return c.matchFloat64(v.Float(), d.Float())
+	switch c.Value.(type) {
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+		switch data.(type) {
+		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+			return c.matchFloat64(numberFloat64(c.Value), numberFloat64(data))
+		default:
+			return false
+		}
+	case string:
+		switch data.(type) {
 		case string:
-			return c.matchString(v.String(), d.String())
+			return c.matchString(c.Value.(string), data.(string))
+		default:
+			return false
+		}
+	default:
+		switch c.Op {
+		case ConditionOpEql, ConditionOpEql2:
+			return reflect.DeepEqual(c.Value, data)
+		case ConditionOpNotEql:
+			return !reflect.DeepEqual(c.Value, data)
+		default:
+			return false
 		}
 	}
-
-	return false
-}
-
-func (c *Condition) matchInt64(x, y int64) bool {
-	switch c.Op {
-	case ConditionOpLT:
-		return x < y
-	case ConditionOpLET:
-		return x <= y
-	case ConditionOpGT:
-		return x > y
-	case ConditionOpGET:
-		return x >= y
-	case ConditionOpEql, ConditionOpEql2:
-		return x == y
-	case ConditionOpNotEql:
-		return x != y
-	}
-	return false
-}
-
-func (c *Condition) matchUint64(x, y uint64) bool {
-	switch c.Op {
-	case ConditionOpLT:
-		return x < y
-	case ConditionOpLET:
-		return x <= y
-	case ConditionOpGT:
-		return x > y
-	case ConditionOpGET:
-		return x >= y
-	case ConditionOpEql, ConditionOpEql2:
-		return x == y
-	case ConditionOpNotEql:
-		return x != y
-	}
-	return false
 }
 
 func (c *Condition) matchFloat64(x, y float64) bool {
@@ -125,4 +90,18 @@ func (c *Condition) matchString(x, y string) bool {
 		return x != y
 	}
 	return false
+}
+
+func numberFloat64(x interface{}) float64 {
+	v := reflect.ValueOf(x)
+	switch x.(type) {
+	case int, int8, int16, int32, int64:
+		return float64(v.Int())
+	case uint, uint8, uint16, uint32, uint64:
+		return float64(v.Uint())
+	case float32, float64:
+		return v.Float()
+	default:
+		panic("not number type")
+	}
 }
