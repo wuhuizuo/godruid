@@ -16,31 +16,6 @@ const DefaultEndPoint = "/druid/v2"
 // CacheThresholdLower the lower threshold for result bytes length
 const CacheThresholdLower = 3
 
-const (
-	// ConditionOpEql equal juge
-	ConditionOpEql = "="
-	// ConditionOpEql2 equal juge, another format
-	ConditionOpEql2 = "=="
-	// ConditionOpNotEql not equal juge
-	ConditionOpNotEql = "!="
-	// ConditionOpGT > juge
-	ConditionOpGT = ">"
-	// ConditionOpGET >= juge
-	ConditionOpGET = ">="
-	// ConditionOpLT < juge
-	ConditionOpLT = "<"
-	// ConditionOpLET <= juge
-	ConditionOpLET = "<="
-)
-
-// Condition cache query condition
-// * copy from https://git.code.oa.com/flarezuo/miglib/blob/master/dcache/jce/DCache/Condition.go
-type Condition struct {
-	FieldName string 		`json:"fieldName"`
-	Op        string 		`json:"op"`
-	Value     interface{}   `json:"value"`
-}
-
 type CacheSelectQuery struct {
 	Target     string      `json:"target"`
 	Conditions []Condition `json:"conditions,omitempty"`
