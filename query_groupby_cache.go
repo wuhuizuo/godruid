@@ -176,31 +176,31 @@ func (q *QueryGroupBy) CacheQuery(c *Client, target string, writeback bool) erro
 }
 
 func (q *QueryGroupBy) conditionTimePos(t time.Time) Condition {
-	return Condition{FieldName: "timePos", Op: "=", Value: strconv.FormatInt(t.Unix(), 10)}
+	return Condition{FieldName: "timePos", Op: ConditionOpEql, Value: strconv.FormatInt(t.Unix(), 10)}
 }
 
 func (q *QueryGroupBy) conditionTimeLen(timeLen int64) Condition {
-	return Condition{FieldName: "timeLen", Op: "=", Value: strconv.FormatInt(timeLen, 10)}
+	return Condition{FieldName: "timeLen", Op: ConditionOpEql, Value: strconv.FormatInt(timeLen, 10)}
 }
 
 func (q *QueryGroupBy) conditionGroupDims() Condition {
-	return Condition{FieldName: "groupDims", Op: "=", Value: jsonStr(q.DimNames())}
+	return Condition{FieldName: "groupDims", Op: ConditionOpEql, Value: jsonStr(q.DimNames())}
 }
 
 func (q *QueryGroupBy) conditionAggNames() Condition {
-	return Condition{FieldName: "aggNames", Op: "=", Value: jsonStr(q.AggNames())}
+	return Condition{FieldName: "aggNames", Op: ConditionOpEql, Value: jsonStr(q.AggNames())}
 }
 
 func (q *QueryGroupBy) conditionAggTypes() Condition {
-	return Condition{FieldName: "aggTypes", Op: "=", Value: jsonStr(q.aggTypes())}
+	return Condition{FieldName: "aggTypes", Op: ConditionOpEql, Value: jsonStr(q.aggTypes())}
 }
 
 func (q *QueryGroupBy) conditionPostAggNames() Condition {
-	return Condition{FieldName: "postAggNames", Op: "=", Value: jsonStr(q.PostAggNames())}
+	return Condition{FieldName: "postAggNames", Op: ConditionOpEql, Value: jsonStr(q.PostAggNames())}
 }
 
 func (q *QueryGroupBy) conditionPostAggExps() Condition {
-	return Condition{FieldName: "postAggExps", Op: "=", Value: jsonStr(q.postAggExps())}
+	return Condition{FieldName: "postAggExps", Op: ConditionOpEql, Value: jsonStr(q.postAggExps())}
 }
 
 func (q *QueryGroupBy) conditionFilterMD5() Condition {
@@ -209,7 +209,7 @@ func (q *QueryGroupBy) conditionFilterMD5() Condition {
 		bs, _ := json.Marshal(q.Filter)
 		filterMD5 = dataKey(bs)
 	}
-	return Condition{FieldName: "filterMD5", Op: "=", Value: filterMD5}
+	return Condition{FieldName: "filterMD5", Op: ConditionOpEql, Value: filterMD5}
 }
 
 // QueryGroupBy special query for GroupBy type query

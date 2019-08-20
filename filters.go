@@ -26,7 +26,7 @@ func (f Filter) ToConditions() ([]Condition, error) {
 	var result []Condition
 	switch f.Type {
 	case "selector":
-		result = append(result, Condition{FieldName: f.Dimension, Op: "==", Value: f.Value})
+		result = append(result, Condition{FieldName: f.Dimension, Op: ConditionOpEql2, Value: f.Value})
 	case "not":
 		mirrorConditions, err := f.Field.ToConditions()
 		if err != nil {
@@ -37,13 +37,13 @@ func (f Filter) ToConditions() ([]Condition, error) {
 		}
 		condition := mirrorConditions[0]
 		reverseMap := map[string]string{
-			"=":  "!=",
-			"==": "!=",
-			">":  "<=",
-			">=": "<",
-			"<":  ">=",
-			"<=": ">",
-			"!=": "==",
+			ConditionOpEql:    ConditionOpNotEql,
+			ConditionOpEql2:   ConditionOpNotEql,
+			ConditionOpGT:     ConditionOpLET,
+			ConditionOpGET:    ConditionOpLT,
+			ConditionOpLT:     ConditionOpGET,
+			ConditionOpLET:    ConditionOpGT,
+			ConditionOpNotEql: ConditionOpEql,
 		}
 		reverseOp, ok := reverseMap[condition.Op]
 		if !ok {
@@ -65,14 +65,14 @@ func (f Filter) ToConditions() ([]Condition, error) {
 		if f.Lower != nil {
 			condition := Condition{FieldName: f.Dimension, Value: f.Lower, Op: ">="}
 			if f.LowerStrict {
-				condition.Op = ">"
+				condition.Op = ConditionOpGT
 			}
 			result = append(result, condition)
 		}
 		if f.Upper != nil {
-			condition := Condition{FieldName: f.Dimension, Value: f.Upper, Op: "<="}
+			condition := Condition{FieldName: f.Dimension, Value: f.Upper, Op: ConditionOpLET}
 			if f.UpperStrict {
-				condition.Op = "<"
+				condition.Op = ConditionOpLT
 			}
 			result = append(result, condition)
 		}
