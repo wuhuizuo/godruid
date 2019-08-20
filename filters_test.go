@@ -12,18 +12,18 @@ func TestFilter_ToConditions(t *testing.T) {
 		want    []Condition
 		wantErr bool
 	}{
-		{"selector-number-1", *FilterSelector("abc", 123), []Condition{Condition{FieldName: "abc", Op: "==", Value: 123}}, false},
-		{"selector-string-1", *FilterSelector("abc", "abc"), []Condition{Condition{FieldName: "abc", Op: "==", Value: "abc"}}, false},
-		{"bound-lower-number-1", *FilterLowerBound("abc", "number", 123, false), []Condition{Condition{FieldName: "abc", Op: ">=", Value: 123}}, false},
-		{"bound-lower-number-2", *FilterLowerBound("abc", "number", 123, true), []Condition{Condition{FieldName: "abc", Op: ">", Value: 123}}, false},
-		{"bound-upper-number-1", *FilterUpperBound("abc", "number", 123, false), []Condition{Condition{FieldName: "abc", Op: "<=", Value: 123}}, false},
-		{"bound-upper-number-2", *FilterUpperBound("abc", "number", 123, true), []Condition{Condition{FieldName: "abc", Op: "<", Value: 123}}, false},
+		{"selector-number-1", *FilterSelector("abc", 123), []Condition{Condition{FieldName: "abc", Op: ConditionOpEql2, Value: 123}}, false},
+		{"selector-string-1", *FilterSelector("abc", "abc"), []Condition{Condition{FieldName: "abc", Op: ConditionOpEql2, Value: "abc"}}, false},
+		{"bound-lower-number-1", *FilterLowerBound("abc", "number", 123, false), []Condition{Condition{FieldName: "abc", Op: ConditionOpGET, Value: 123}}, false},
+		{"bound-lower-number-2", *FilterLowerBound("abc", "number", 123, true), []Condition{Condition{FieldName: "abc", Op: ConditionOpGT, Value: 123}}, false},
+		{"bound-upper-number-1", *FilterUpperBound("abc", "number", 123, false), []Condition{Condition{FieldName: "abc", Op: ConditionOpLET, Value: 123}}, false},
+		{"bound-upper-number-2", *FilterUpperBound("abc", "number", 123, true), []Condition{Condition{FieldName: "abc", Op: ConditionOpLT, Value: 123}}, false},
 		{
 			"bound-lower-upper-1",
 			*FilterLowerUpperBound("abc", "number", 123, false, 456, false),
 			[]Condition{
-				Condition{FieldName: "abc", Op: ">=", Value: 123},
-				Condition{FieldName: "abc", Op: "<=", Value: 456},
+				Condition{FieldName: "abc", Op: ConditionOpGET, Value: 123},
+				Condition{FieldName: "abc", Op: ConditionOpLET, Value: 456},
 			},
 			false,
 		},
@@ -31,9 +31,9 @@ func TestFilter_ToConditions(t *testing.T) {
 			"and-1",
 			*FilterAnd(FilterLowerUpperBound("abc", "number", 123, false, 456, false), FilterSelector("def", 123)),
 			[]Condition{
-				Condition{FieldName: "abc", Op: ">=", Value: 123},
-				Condition{FieldName: "abc", Op: "<=", Value: 456},
-				Condition{FieldName: "def", Op: "==", Value: 123},
+				Condition{FieldName: "abc", Op: ConditionOpGET, Value: 123},
+				Condition{FieldName: "abc", Op: ConditionOpLET, Value: 456},
+				Condition{FieldName: "def", Op: ConditionOpEql2, Value: 123},
 			},
 			false,
 		},
