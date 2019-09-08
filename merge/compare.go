@@ -25,10 +25,12 @@ func MapCompare(compareKeys []string, mapA, maptB map[string]interface{}) (int8,
 		switch {
 		case !okA && !okB: // A,B都无Key
 			continue
-		case !okA: // A 无Key, B有Key
+		case !okA || vA == nil: // A 无Key, B有Key
 			return CompareLT, nil
-		case !okB: // A 有Key, B无Key
+		case !okB || vB == nil: // A 有Key, B无Key
 			return CompareGT, nil
+		case vA == nil && vB == nil:
+			continue
 		default:
 			cRet, cErr := interfaceCompare(vA, vB)
 			if cErr != nil {
@@ -39,12 +41,11 @@ func MapCompare(compareKeys []string, mapA, maptB map[string]interface{}) (int8,
 			}
 		}
 	}
-
 	return ret, nil
 }
 
+// interfaceCompare 目前只能用于简单类型的比较
 func interfaceCompare(va, vb interface{}) (int8, error) {
-	// 目前只能用于简单类型的比较
 	if reflect.TypeOf(va) == reflect.TypeOf(vb) {
 		if reflect.DeepEqual(va, vb) {
 			return CompareEQ, nil
