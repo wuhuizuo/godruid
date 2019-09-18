@@ -33,14 +33,14 @@ func (c *Condition) Match(data interface{}) bool {
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
 		switch data.(type) {
 		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
-			return c.matchFloat64(numberFloat64(c.Value), numberFloat64(data))
+			return c.matchFloat64(numberFloat64(data), numberFloat64(c.Value))
 		default:
 			return false
 		}
 	case string:
 		switch data.(type) {
 		case string:
-			return c.matchString(c.Value.(string), data.(string))
+			return c.matchString(data.(string), c.Value.(string))
 		default:
 			return false
 		}
