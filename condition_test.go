@@ -3,6 +3,7 @@ package godruid
 import "testing"
 
 func TestCondition_Match(t *testing.T) {
+	type m = map[string]interface{}
 	tests := []struct {
 		name string
 		c    *Condition
@@ -213,6 +214,12 @@ func TestCondition_Match(t *testing.T) {
 		{"string--<=--1", &Condition{Op: ConditionOpLET, Value: "1"}, "0", true},
 		{"string--<=--1", &Condition{Op: ConditionOpLET, Value: "1"}, "1", true},
 		{"string--<=--2", &Condition{Op: ConditionOpLET, Value: "1"}, "2", false},
+
+		{"map--empty--⊇--empty", &Condition{Op: ConditionOpMapInclude, Value: m{}}, m{}, true},
+		{"map--empty--⊇--not_empty", &Condition{Op: ConditionOpMapInclude, Value: m{}}, m{"a": 2}, true},
+		{"map--⊇--1", &Condition{Op: ConditionOpMapInclude, Value: m{"a": 1, "b": 2.0, "c": "xxx"}}, m{"a": 1, "b": 2.0, "c": "xxx"}, true},
+		{"map--⊇--2", &Condition{Op: ConditionOpMapInclude, Value: m{"a": 1, "b": 2.0, "c": "xxx"}}, m{"a": 1, "b": 2.0}, false},
+		{"map--⊇--3", &Condition{Op: ConditionOpMapInclude, Value: m{"a": 1, "b": 2.0}}, m{"a": 1, "b": 2.0, "c": "xxx"}, true},
 
 		{"other--eql--1", &Condition{Op: ConditionOpEql, Value: "1"}, 1, false},
 		{"other--eql--2", &Condition{Op: ConditionOpEql, Value: "1"}, nil, false},
