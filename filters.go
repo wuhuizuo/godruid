@@ -63,14 +63,14 @@ func (f Filter) ToConditions() ([]Condition, error) {
 		}
 	case "bound":
 		if f.Lower != nil {
-			condition := Condition{FieldName: f.Dimension, Value: f.Lower, Op: ">="}
+			condition := Condition{FieldName: f.Dimension, Value: *f.Lower, Op: ">="}
 			if f.LowerStrict {
 				condition.Op = ConditionOpGT
 			}
 			result = append(result, condition)
 		}
 		if f.Upper != nil {
-			condition := Condition{FieldName: f.Dimension, Value: f.Upper, Op: ConditionOpLET}
+			condition := Condition{FieldName: f.Dimension, Value: *f.Upper, Op: ConditionOpLET}
 			if f.UpperStrict {
 				condition.Op = ConditionOpLT
 			}
