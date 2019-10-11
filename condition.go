@@ -1,6 +1,7 @@
 package godruid
 
 import (
+	"encoding/json"
 	"reflect"
 )
 
@@ -43,6 +44,12 @@ func (c *Condition) Match(data interface{}) bool {
 	case map[string]interface{}:
 		return c.MatchMap(data)
 	default:
+		// may by condition value is a struct
+		if isStruct, valueMap := tryTransStructToMap(c.Value); isStruct {
+			return c.matchStructWithMap(valueMap, data)
+		}
+
+		// condition value is not a struct
 		switch c.Op {
 		case ConditionOpEql, ConditionOpEql2:
 			return reflect.DeepEqual(c.Value, data)
@@ -85,7 +92,30 @@ func (c *Condition) MatchMap(data interface{}) bool {
 	}
 	d, dok := data.(map[string]interface{})
 
-	return dok && c.matchMap(d, m)
+	if dok {
+		return c.matchMap(d, m)
+	}
+
+	// try struct
+	isStruct, mapTransValue := tryTransStructToMap(data)
+	return isStruct && c.matchMap(mapTransValue, m)
+}
+
+// matchStructWithMap for struct dest value
+func (c *Condition) matchStructWithMap(patternVal map[string]interface{}, data interface{}) bool {
+	if data == nil {
+		return false
+	}
+
+	// try map for dest value
+	d, dok := data.(map[string]interface{})
+	if dok {
+		return c.matchMap(d, patternVal)
+	}
+
+	// try struct for dest value
+	isStruct, mapTransValue := tryTransStructToMap(data)
+	return isStruct && c.matchMap(mapTransValue, patternVal)
 }
 
 func (c *Condition) matchFloat64(x, y float64) bool {
@@ -153,4 +183,24 @@ func numberFloat64(x interface{}) float64 {
 	default:
 		panic("not number type")
 	}
+}
+
+// tryTransStructToMap try translate struct to map
+func tryTransStructToMap(data interface{}) (bool, map[string]interface{}) {
+	// Value是否是 struct
+	if reflect.ValueOf(data).Kind() != reflect.Struct {
+		return false, nil
+	}
+
+	bs, err := json.Marshal(data)
+	if err != nil {
+		return false, nil
+	}
+
+	mapTransValue := map[string]interface{}{}
+	if json.Unmarshal(bs, &mapTransValue) != nil {
+		return false, nil
+	}
+
+	return true, mapTransValue
 }

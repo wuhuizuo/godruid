@@ -4,6 +4,11 @@ import "testing"
 
 func TestCondition_Match(t *testing.T) {
 	type m = map[string]interface{}
+	type s struct {
+		A uint    `json:"a"`
+		B float64 `json:"b"`
+		C string  `json:"c,omitempty"`
+	}
 	tests := []struct {
 		name string
 		c    *Condition
@@ -220,6 +225,9 @@ func TestCondition_Match(t *testing.T) {
 		{"map--⊇--1", &Condition{Op: ConditionOpMapInclude, Value: m{"a": 1, "b": 2.0, "c": "xxx"}}, m{"a": 1, "b": 2.0, "c": "xxx"}, true},
 		{"map--⊇--2", &Condition{Op: ConditionOpMapInclude, Value: m{"a": 1, "b": 2.0, "c": "xxx"}}, m{"a": 1, "b": 2.0}, false},
 		{"map--⊇--3", &Condition{Op: ConditionOpMapInclude, Value: m{"a": 1, "b": 2.0}}, m{"a": 1, "b": 2.0, "c": "xxx"}, true},
+		{"map--⊇--struct", &Condition{Op: ConditionOpMapInclude, Value: m{"a": 1.0, "b": 2.0}}, s{A: 1, B: 2.0, C: "xxx"}, true},
+		{"struct--⊇--struct", &Condition{Op: ConditionOpMapInclude, Value: s{A: 1, B: 2.0}}, s{A: 1, B: 2.0, C: "xxx"}, true},
+		{"struct--⊇--map", &Condition{Op: ConditionOpMapInclude, Value: s{A: 1, B: 2.0}}, m{"a": 1.0, "b": 2.0, "c": "xxx"}, true},
 
 		{"other--eql--1", &Condition{Op: ConditionOpEql, Value: "1"}, 1, false},
 		{"other--eql--2", &Condition{Op: ConditionOpEql, Value: "1"}, nil, false},
