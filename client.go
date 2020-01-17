@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -15,6 +16,9 @@ const DefaultEndPoint = "/druid/v2"
 
 // CacheThresholdLower the lower threshold for result bytes length
 const CacheThresholdLower = 3
+
+// URLUpdateErrReg match regexp for url updating
+const URLUpdateErrReg = `connection\s+refused`
 
 type CacheSelectQuery struct {
 	Target     string      `json:"target"`
@@ -64,6 +68,10 @@ type LoggerInterface interface {
 	Warnf(format string, v ...interface{})
 }
 
+// URLUpdater updater for druid api base url
+// 	some druid server deployed with cluster, url maybe changed when cluster node migrate or added/deleted.
+type URLUpdater func() (string, error)
+
 // EmptyLogger no log ops logger
 type EmptyLogger struct {
 	// nothing
@@ -80,6 +88,7 @@ func (l *EmptyLogger) Warnf(format string, v ...interface{})  {}
 
 type Client struct {
 	Url          string
+	URLUpdater   URLUpdater
 	EndPoint     string
 	DataSource   string
 	AuthToken    string
@@ -90,47 +99,6 @@ type Client struct {
 	Logger       LoggerInterface
 	ResultCache  CacheAdapter
 	GroupByCache GroupByCacheAdapter
-}
-
-// dataKey create a md5sum key for a given data
-func dataKey(data []byte) string {
-	var tmpData interface{}
-	json.Unmarshal(data, &tmpData)
-	sortedBytes, _ := json.Marshal(tmpData)
-	return fmt.Sprintf("%x", md5.Sum(sortedBytes))
-}
-
-func setDataSource(query Query, ds string) error {
-	switch query.(type) {
-	case *QueryGroupBy:
-		a := query.(*QueryGroupBy)
-		a.DataSource = ds
-	case *QueryScan:
-		a := query.(*QueryScan)
-		a.DataSource = ds
-	case *QuerySearch:
-		a := query.(*QuerySearch)
-		a.DataSource = ds
-	case *QuerySelect:
-		a := query.(*QuerySelect)
-		a.DataSource = ds
-	case *QuerySegmentMetadata:
-		a := query.(*QuerySegmentMetadata)
-		a.DataSource = ds
-	case *QueryTimeBoundary:
-		a := query.(*QueryTimeBoundary)
-		a.DataSource = ds
-	case *QueryTimeseries:
-		a := query.(*QueryTimeseries)
-		a.DataSource = ds
-	case *QueryTopN:
-		a := query.(*QueryTopN)
-		a.DataSource = ds
-	default:
-		return fmt.Errorf("not support type: %v", query)
-	}
-
-	return nil
 }
 
 func (c *Client) Query(query Query) (err error) {
@@ -200,33 +168,17 @@ func (c *Client) QueryRaw(req []byte) (result []byte, err error) {
 		return
 	}
 
-	request, err := http.NewRequest("POST", c.Url+endPoint, bytes.NewBuffer(req))
+	resp, err := c.queryRaw(endPoint, req)
 	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	if c.AuthToken != "" {
-		cookie := &http.Cookie{
-			Name:  "skylight-aaa",
-			Value: c.AuthToken,
-		}
-		request.AddCookie(cookie)
-	}
-
-	resp, err := c.HttpClient.Do(request)
-	defer func() {
-		if resp != nil {
-			resp.Body.Close()
-		}
-	}()
-
-	if err != nil {
-		return nil, err
+		return result, err
 	}
 
 	result, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return
+	}
+	if resp.Body != nil {
+		defer resp.Body.Close()
 	}
 	if c.Debug {
 		c.LastResponse = string(result)
@@ -237,4 +189,92 @@ func (c *Client) QueryRaw(req []byte) (result []byte, err error) {
 	}
 
 	return
+}
+
+func (c *Client) queryRaw(endPoint string, req []byte) (*http.Response, error) {
+	var urlUpdated bool
+	if c.Url == "" {
+		newBaseURL, uErr := c.URLUpdater()
+		if uErr != nil {
+			return nil, uErr
+		}
+		c.Url = newBaseURL
+		urlUpdated = true
+	}
+
+	resp, err := queryRaw(c.HttpClient, c.Url, endPoint, c.AuthToken, req)
+	if err == nil || c.URLUpdater == nil || urlUpdated {
+		return resp, err
+	}	
+
+	needUpdateURL := regexp.MustCompile(URLUpdateErrReg).MatchString(err.Error())
+	if !needUpdateURL {
+		return nil, err
+	}
+
+	newBaseURL, uErr := c.URLUpdater()
+	if uErr != nil {
+		return nil, uErr
+	}
+	c.Url = newBaseURL
+	return queryRaw(c.HttpClient, newBaseURL, endPoint, c.AuthToken, req)	
+}
+
+func queryRaw(httpClient *http.Client, baseURL, endPoint, authToken string, req []byte) (*http.Response, error) {
+	request, err := http.NewRequest("POST", baseURL+endPoint, bytes.NewBuffer(req))
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	if authToken != "" {
+		cookie := &http.Cookie{
+			Name:  "skylight-aaa",
+			Value: authToken,
+		}
+		request.AddCookie(cookie)
+	}
+
+	resp, err := httpClient.Do(request)
+	return resp, err
+}
+
+// dataKey create a md5sum key for a given data
+func dataKey(data []byte) string {
+	var tmpData interface{}
+	json.Unmarshal(data, &tmpData)
+	sortedBytes, _ := json.Marshal(tmpData)
+	return fmt.Sprintf("%x", md5.Sum(sortedBytes))
+}
+
+func setDataSource(query Query, ds string) error {
+	switch query.(type) {
+	case *QueryGroupBy:
+		a := query.(*QueryGroupBy)
+		a.DataSource = ds
+	case *QueryScan:
+		a := query.(*QueryScan)
+		a.DataSource = ds
+	case *QuerySearch:
+		a := query.(*QuerySearch)
+		a.DataSource = ds
+	case *QuerySelect:
+		a := query.(*QuerySelect)
+		a.DataSource = ds
+	case *QuerySegmentMetadata:
+		a := query.(*QuerySegmentMetadata)
+		a.DataSource = ds
+	case *QueryTimeBoundary:
+		a := query.(*QueryTimeBoundary)
+		a.DataSource = ds
+	case *QueryTimeseries:
+		a := query.(*QueryTimeseries)
+		a.DataSource = ds
+	case *QueryTopN:
+		a := query.(*QueryTopN)
+		a.DataSource = ds
+	default:
+		return fmt.Errorf("not support type: %v", query)
+	}
+
+	return nil
 }
