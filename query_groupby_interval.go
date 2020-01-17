@@ -1,9 +1,9 @@
 package godruid
 
 import (
-	"time"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // IntervalSlot query interval slot item
@@ -34,7 +34,6 @@ func (q *QueryGroupBy) DistributeIntervalSlots() ([]IntervalSlot, error) {
 	}
 	return ret, nil
 }
-
 
 // DistributeIntervals distribute interval to serval interval slots, minium to hour
 func DistributeIntervals(interval string) ([]IntervalSlot, error) {

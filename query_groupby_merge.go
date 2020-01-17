@@ -1,9 +1,11 @@
 package godruid
+
 import (
-	"strings"
-	"reflect"
 	"errors"
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/wuhuizuo/godruid/merge"
 )
 
@@ -284,7 +286,7 @@ func postAggExp(pg PostAggregation) string {
 		ret := []string{}
 		fn := pg.Fn
 		// 单目操作符
-		fieldsLen  := len(pg.Fields)
+		fieldsLen := len(pg.Fields)
 		switch fieldsLen {
 		case 1, 2:
 			var expPg0 string

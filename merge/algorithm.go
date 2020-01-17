@@ -1,9 +1,10 @@
 package merge
 
 import (
-	"math"
 	"fmt"
+	"math"
 	"reflect"
+
 	govaluate "github.com/wuhuizuo/govaluate"
 )
 
@@ -241,7 +242,7 @@ func Max(vals ...interface{}) interface{} {
 func PostAggComputeArithmetic(data map[string]interface{}, arithmeticExp string) (interface{}, error) {
 	exp, err := govaluate.NewEvaluableExpression(arithmeticExp)
 	if err != nil {
-		return nil , err
+		return nil, err
 	}
 	ret, err := exp.Evaluate(data)
 	switch ret.(type) {

@@ -69,14 +69,14 @@ type EmptyLogger struct {
 	// nothing
 }
 
-func (l *EmptyLogger)Info(v ...interface{}) {}
-func (l *EmptyLogger)Debug(v ...interface{}) {}
-func (l *EmptyLogger)Warn(v ...interface{}) {}
-func (l *EmptyLogger)Error(v ...interface{}) {}
-func (l *EmptyLogger)Infof(format string, v ...interface{}) {}
-func (l *EmptyLogger)Debugf(format string, v ...interface{}) {}
-func (l *EmptyLogger)Errorf(format string, v ...interface{}) {}
-func (l *EmptyLogger)Warnf(format string, v ...interface{}) {}
+func (l *EmptyLogger) Info(v ...interface{})                  {}
+func (l *EmptyLogger) Debug(v ...interface{})                 {}
+func (l *EmptyLogger) Warn(v ...interface{})                  {}
+func (l *EmptyLogger) Error(v ...interface{})                 {}
+func (l *EmptyLogger) Infof(format string, v ...interface{})  {}
+func (l *EmptyLogger) Debugf(format string, v ...interface{}) {}
+func (l *EmptyLogger) Errorf(format string, v ...interface{}) {}
+func (l *EmptyLogger) Warnf(format string, v ...interface{})  {}
 
 type Client struct {
 	Url          string
@@ -87,7 +87,7 @@ type Client struct {
 	LastRequest  string
 	LastResponse string
 	HttpClient   *http.Client
-	Logger 		 LoggerInterface
+	Logger       LoggerInterface
 	ResultCache  CacheAdapter
 	GroupByCache GroupByCacheAdapter
 }

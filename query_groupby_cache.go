@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 	"strconv"
+	"time"
 )
 
 // PersistenceRow  for persistence StaticTable's row
@@ -20,7 +20,7 @@ type PersistenceRow struct {
 	PostAggExps  []string      `json:"postAggExps"`  // Value, json map
 	AggVals      []interface{} `json:"aggVals"`      // Value, json map
 	PostAggVals  []interface{} `json:"postAggVals"`  // Value, json map
-	FilterMD5    string 	   `json:"filterMD5"`
+	FilterMD5    string        `json:"filterMD5"`
 }
 
 // DistributeQuery split intervals to whole days and hours
@@ -53,8 +53,8 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 	if iErr != nil {
 		return ret, iErr
 	}
-	timePos := 	  intervalSlot.TimePos.Unix()
-	timeLen := 	  intervalSlot.TimeLen
+	timePos := intervalSlot.TimePos.Unix()
+	timeLen := intervalSlot.TimeLen
 	groupDims := q.DimNames()
 	aggNames := q.AggNames()
 	postAggNames := q.PostAggNames()
@@ -83,8 +83,8 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 			postAggVals = append(postAggVals, item.Event[kp])
 		}
 		ret = append(ret, PersistenceRow{
-			TimePos: 	  timePos,
-			TimeLen: 	  timeLen,
+			TimePos:      timePos,
+			TimeLen:      timeLen,
 			GroupDims:    groupDims,
 			AggNames:     aggNames,
 			PostAggNames: postAggNames,
@@ -93,7 +93,7 @@ func (q *QueryGroupBy) PersistenceRows() ([]PersistenceRow, error) {
 			GroupDimVals: groupDimVals,
 			AggVals:      aggVals,
 			PostAggVals:  postAggVals,
-			FilterMD5: 	  filterMD5,
+			FilterMD5:    filterMD5,
 		})
 	}
 
