@@ -52,7 +52,7 @@ func FilterSpacialRectangle(dimension string, minCoords SpatialCoordinates, maxC
 	return &Filter{
 		Type:      "spatial",
 		Dimension: dimension,
-		Bound: Bound{
+		Bound: &Bound{
 			Type:      "rectangular",
 			MinCoords: []float64{minCoords.Latitude, minCoords.Longitude},
 			MaxCoords: []float64{maxCoords.Latitude, maxCoords.Longitude},
@@ -64,7 +64,7 @@ func FilterSpacialRadius(dimension string, coords SpatialCoordinates, radius flo
 	return &Filter{
 		Type:      "spatial",
 		Dimension: dimension,
-		Bound: Bound{
+		Bound: &Bound{
 			Type:   "radius",
 			Coords: []float64{coords.Latitude, coords.Longitude},
 			Radius: radius,
