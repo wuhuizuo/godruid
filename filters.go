@@ -15,15 +15,15 @@ type Filter struct {
 	UpperStrict  bool          `json:"upperStrict,omitempty"`
 	LowerStrict  bool          `json:"lowerStrict,omitempty"`
 	ExtractionFn *ExtractionFn `json:"extractionFn,omitempty"`
-	Bound        Bound         `json:"bound,omitempty"`
+	Bound        *Bound        `json:"bound,omitempty"`
 }
 
 type Bound struct {
 	Type      string    `json:"type"`
-	MinCoords []float64 `json:"minCoords"`
-	MaxCoords []float64 `json:"maxCoords"`
-	Coords    []float64 `json:"coords"`
-	Radius    float64   `json:"radius"`
+	MinCoords []float64 `json:"minCoords,omitempty"`
+	MaxCoords []float64 `json:"maxCoords,omitempty"`
+	Coords    []float64 `json:"coords,omitempty"`
+	Radius    float64   `json:"radius,omitempty"`
 }
 
 type Ordering string
