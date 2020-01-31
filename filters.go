@@ -48,7 +48,7 @@ type SpatialCoordinates struct {
 	Longitude float64
 }
 
-func FilterSpacialRectangle(dimension string, minCoords SpatialCoordinates, maxCoords SpatialCoordinates) *Filter {
+func FilterSpatialRectangle(dimension string, minCoords SpatialCoordinates, maxCoords SpatialCoordinates) *Filter {
 	return &Filter{
 		Type:      "spatial",
 		Dimension: dimension,
@@ -60,7 +60,7 @@ func FilterSpacialRectangle(dimension string, minCoords SpatialCoordinates, maxC
 	}
 }
 
-func FilterSpacialRadius(dimension string, coords SpatialCoordinates, radius float64) *Filter {
+func FilterSpatialRadius(dimension string, coords SpatialCoordinates, radius float64) *Filter {
 	return &Filter{
 		Type:      "spatial",
 		Dimension: dimension,
