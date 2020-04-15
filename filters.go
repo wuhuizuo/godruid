@@ -19,6 +19,15 @@ type Filter struct {
 	UpperStrict  bool          `json:"upperStrict,omitempty"`
 	LowerStrict  bool          `json:"lowerStrict,omitempty"`
 	ExtractionFn *ExtractionFn `json:"extractionFn,omitempty"`
+	Bound        *Bound        `json:"bound,omitempty"`
+}
+
+type Bound struct {
+	Type      string    `json:"type"`
+	MinCoords []float64 `json:"minCoords,omitempty"`
+	MaxCoords []float64 `json:"maxCoords,omitempty"`
+	Coords    []float64 `json:"coords,omitempty"`
+	Radius    float64   `json:"radius,omitempty"`
 }
 
 // ToConditions translate to Conditions for db query
@@ -100,6 +109,35 @@ const (
 	LOWERLIMIT  = "lowerLimit"
 	UPPERLIMIT  = "upperLimit"
 )
+
+type SpatialCoordinates struct {
+	Latitude  float64
+	Longitude float64
+}
+
+func FilterSpatialRectangle(dimension string, minCoords SpatialCoordinates, maxCoords SpatialCoordinates) *Filter {
+	return &Filter{
+		Type:      "spatial",
+		Dimension: dimension,
+		Bound: &Bound{
+			Type:      "rectangular",
+			MinCoords: []float64{minCoords.Latitude, minCoords.Longitude},
+			MaxCoords: []float64{maxCoords.Latitude, maxCoords.Longitude},
+		},
+	}
+}
+
+func FilterSpatialRadius(dimension string, coords SpatialCoordinates, radius float64) *Filter {
+	return &Filter{
+		Type:      "spatial",
+		Dimension: dimension,
+		Bound: &Bound{
+			Type:   "radius",
+			Coords: []float64{coords.Latitude, coords.Longitude},
+			Radius: radius,
+		},
+	}
+}
 
 func FilterSelector(dimension string, value interface{}) *Filter {
 	return &Filter{
